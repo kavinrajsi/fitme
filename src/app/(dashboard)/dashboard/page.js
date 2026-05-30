@@ -172,7 +172,7 @@ export default async function DashboardPage() {
       )}
 
       {stats.length > 0 && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-4 mb-10">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 mb-10">
           {stats.map((s) => (
             <Card key={s.label}>
               <CardContent className="pt-6">

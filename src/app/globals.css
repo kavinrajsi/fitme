@@ -129,8 +129,22 @@
     }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior: none;
     }
   html {
     @apply font-sans;
+    -webkit-text-size-adjust: 100%;
     }
+  /* Prevent iOS auto-zoom on input focus (triggered when font-size < 16px) */
+  input, textarea, select {
+    font-size: max(16px, 1em);
+    }
+}
+
+/* Bottom tab bar safe-area padding on notched iPhones */
+.pb-safe-tab {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

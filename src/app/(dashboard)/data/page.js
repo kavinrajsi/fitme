@@ -92,7 +92,7 @@ export default async function DataPage() {
       {health && (
         <section className="mb-10">
           <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">Activity — Today</h2>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
             <STAT icon="directions_walk" label="Steps" value={health.stepsToday.toLocaleString()} />
             <STAT icon="local_fire_department" label="Calories" value={`${health.caloriesToday.toLocaleString()} kcal`} />
             <STAT icon="timer" label="Active minutes" value={`${health.activeMinutesToday} min`} />
@@ -107,7 +107,7 @@ export default async function DataPage() {
       {(weightKg || heightCm || sleep) && (
         <section className="mb-10">
           <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">Body</h2>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
             {weightKg && <STAT icon="monitor_weight" label="Weight" value={`${weightKg} kg`} />}
             {heightCm && <STAT icon="height" label="Height" value={`${heightCm} cm`} />}
             {bmi && (

@@ -15,6 +15,21 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "FitMe",
   description: "Your personal fitness companion",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FitMe',
+  },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 const themeScript = `

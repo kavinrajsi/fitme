@@ -129,9 +129,9 @@ export default function PrivacyPage() {
         <Section title="9. Contact">
           <p>
             For privacy questions or data deletion requests, contact us at{' '}
-            <a href="mailto:sikavinraj@gmail.com" className="font-medium underline hover:text-foreground">
-              sikavinraj@gmail.com
-            </a>
+            <a href="mailto:devatmadarth@gmail.com" className="font-medium underline hover:text-foreground">devatmadarth@gmail.com</a>
+            {' '}or{' '}
+            <a href="mailto:kavin@madarth.com" className="font-medium underline hover:text-foreground">kavin@madarth.com</a>
             .
           </p>
         </Section>

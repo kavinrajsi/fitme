@@ -83,9 +83,9 @@ export default function TermsPage() {
         <Section title="9. Contact">
           <p>
             Questions? Email us at{' '}
-            <a href="mailto:sikavinraj@gmail.com" className="font-medium underline hover:text-foreground">
-              sikavinraj@gmail.com
-            </a>
+            <a href="mailto:devatmadarth@gmail.com" className="font-medium underline hover:text-foreground">devatmadarth@gmail.com</a>
+            {' '}or{' '}
+            <a href="mailto:kavin@madarth.com" className="font-medium underline hover:text-foreground">kavin@madarth.com</a>
             .
           </p>
         </Section>
