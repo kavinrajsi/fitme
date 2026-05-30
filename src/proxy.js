@@ -1,3 +1,14 @@
+/**
+ * Next.js 16 middleware — exported as `proxy`, NOT `middleware`.
+ * Runs on every non-static request (see matcher below).
+ *
+ * Responsibilities:
+ * - Refreshes the Supabase session cookie on every request so tokens stay alive.
+ * - Redirects unauthenticated users away from protected routes (/dashboard, /profile).
+ * - Redirects authenticated users away from /signin to avoid showing the login page.
+ *
+ * Protected path list must be kept in sync with actual dashboard routes.
+ */
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 

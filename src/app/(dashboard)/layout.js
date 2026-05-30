@@ -1,3 +1,10 @@
+/**
+ * Dashboard layout — sticky top nav shared by /dashboard, /data, /leaderboard, /profile.
+ *
+ * NavLinks is extracted as a client component so it can use usePathname()
+ * to apply active styles, while keeping this layout as a Server Component
+ * (required for the `signOut` server action form to work correctly).
+ */
 import { signOut } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import { NavLinks } from '@/components/nav-links'

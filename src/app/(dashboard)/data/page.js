@@ -1,3 +1,20 @@
+/**
+ * Data page — comprehensive view of all Google Fit data. Server component.
+ *
+ * Sections rendered (each conditional on data availability):
+ * - Activity Today: steps, calories, active minutes, distance, heart rate, active days
+ * - Body: weight, height, BMI (computed), sleep last night
+ * - Activities (last 7 days): workout sessions with name, duration, steps per session
+ * - Steps bar chart (last 7 days, from live Google Fit data)
+ * - History table (last 30 days from the health_daily DB table)
+ *
+ * All five Google Fit calls run in parallel via Promise.all.
+ * Activity sessions each trigger an additional aggregate call to get per-session steps,
+ * also parallelised inside getActivitySessions().
+ *
+ * Body metric fallback: if the live fetch returns null (no data in Google Fit),
+ * the last values stored in profiles.weight_kg / height_cm are shown instead.
+ */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getHealthSummary, getDailySteps, getBodyMetrics, getSleepData, getActivitySessions } from '@/lib/google-fit'

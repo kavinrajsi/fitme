@@ -1,5 +1,11 @@
 'use client'
 
+/**
+ * Theme switcher — three-button toggle (System / Light / Dark) shown on the profile page.
+ * The `mounted` guard delays rendering until after hydration to prevent a mismatch
+ * between the server-rendered state (always 'system') and the client-read localStorage value.
+ * Without it, the active button would flash to the wrong selection on first paint.
+ */
 import { useEffect, useState } from 'react'
 import { useTheme } from '@/components/theme-provider'
 import { Icon } from '@/components/icon'

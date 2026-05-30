@@ -1,5 +1,12 @@
 'use client'
 
+/**
+ * Navigation links with active state highlighting.
+ * Extracted as a Client Component so usePathname() can be called without making
+ * the entire dashboard layout a Client Component (which would break the server
+ * action form used for sign-out).
+ * Active link gets full foreground colour + a primary-coloured bottom border.
+ */
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 

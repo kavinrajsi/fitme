@@ -1,3 +1,17 @@
+/**
+ * Sign-in page — the only entry point for authentication.
+ * Google OAuth is the sole sign-in method; email/password is not supported.
+ *
+ * The Google button is a <Link> (not <Button asChild>) because Base UI's Button
+ * doesn't support the asChild prop. `buttonVariants()` applies the same visual
+ * styles to any element.
+ *
+ * `prefetch={false}` on the /auth/google link prevents Next.js from treating the
+ * Route Handler as an RSC page and triggering an "RSC payload" console warning.
+ *
+ * Error messages are surfaced via `?error=` search param set by the callback route.
+ * searchParams must be awaited in Next.js 16 before accessing properties.
+ */
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'

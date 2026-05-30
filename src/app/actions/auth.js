@@ -1,5 +1,15 @@
 'use server'
 
+/**
+ * Server actions for authentication and profile management.
+ *
+ * `signOut` — signs out from Supabase and redirects to /signin.
+ *
+ * `updateProfile` — updates the user's display name in the profiles table.
+ *   Called from the profile page form via FormData. The bio field was removed
+ *   from the UI but the column remains in the DB if needed later.
+ *   Returns { error } or { success } for the client to display as feedback.
+ */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 

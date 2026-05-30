@@ -1,3 +1,19 @@
+/**
+ * Leaderboard page — ranks all users by step count. Server component.
+ *
+ * Three time periods are supported: today, last 7 days, this month.
+ * The active tab is driven by the `?tab=` search param so each view is
+ * server-rendered and shareable via URL — no client state needed.
+ *
+ * Data comes from the `get_leaderboard(period)` Postgres RPC function which
+ * aggregates `health_daily` rows and applies ROW_NUMBER() for ranking.
+ * SECURITY INVOKER means RLS still applies — only rows readable by the
+ * authenticated user are included (the leaderboard RLS policy allows reading
+ * all rows, so all users appear regardless of leaderboard_visible setting).
+ *
+ * Medal colours: gold (#1), silver (#2), bronze (#3) via Tailwind text colours.
+ * The current user's row is highlighted with a primary border + tinted background.
+ */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'

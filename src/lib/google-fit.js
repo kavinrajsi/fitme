@@ -1,3 +1,23 @@
+/**
+ * Google Fitness REST API client.
+ *
+ * All functions accept a Google OAuth access token stored in profiles.google_access_token.
+ * Tokens expire after 1 hour — callers should check google_token_expires_at before calling.
+ *
+ * Two API patterns are used:
+ * - `dataset:aggregate` — for delta metrics (steps, calories, heart rate, active minutes,
+ *   distance). Returns bucketed aggregates over a time range.
+ * - `dataSources/{id}/datasets/{startNs}-{endNs}` — for instantaneous measurements
+ *   (weight, height). Timestamps are nanoseconds; BigInt is required to avoid precision
+ *   loss because a 1-year range in nanoseconds exceeds Number.MAX_SAFE_INTEGER.
+ *
+ * `next: { revalidate: 300 }` on fetch calls enables Next.js Data Cache for 5 minutes,
+ * reducing redundant API calls when the page is visited multiple times in quick succession.
+ *
+ * Activity session steps: each session triggers a separate aggregate call to get steps
+ * for that session's time window. These run in parallel via Promise.all inside
+ * getActivitySessions() to keep total latency low.
+ */
 const FITNESS_API = 'https://www.googleapis.com/fitness/v1/users/me'
 
 function todayRange() {

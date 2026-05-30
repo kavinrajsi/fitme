@@ -1,3 +1,11 @@
+/**
+ * Supabase server client — used in Server Components, Route Handlers, and Server Actions.
+ *
+ * Must be called with `await` (Next.js 16: cookies() is async).
+ * The setAll catch block silences errors thrown when cookies are set inside a
+ * Server Component render (cookies are read-only there; setting is only possible
+ * in Route Handlers and Server Actions).
+ */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 

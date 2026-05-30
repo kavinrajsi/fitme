@@ -1,3 +1,16 @@
+/**
+ * GET /auth/callback — OAuth callback handler, called by Supabase after Google consent.
+ *
+ * Exchanges the one-time `code` param for a Supabase session, then saves the
+ * Google provider tokens to the `profiles` table so the Fitness API can be
+ * called later without re-authenticating.
+ *
+ * Token expiry is hardcoded at 1 hour (Google's access token lifetime).
+ * The refresh token is stored for future token renewal flows.
+ *
+ * `full_name` from Google user_metadata is backfilled into `profiles` on every
+ * sign-in so the display name stays current if the user changes their Google name.
+ */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'

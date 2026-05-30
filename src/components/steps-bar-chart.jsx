@@ -1,5 +1,12 @@
 'use client'
 
+/**
+ * Steps bar chart — Recharts BarChart wrapped in shadcn ChartContainer.
+ * Expects data as `[{ date: string, steps: number }]` (last 7 days, oldest first).
+ * Must be a Client Component because Recharts uses browser APIs (ResizeObserver).
+ * Y-axis values ≥ 1000 are formatted as "Xk" to save horizontal space.
+ * Bar fill and tooltip colours come from CSS variables so they adapt to dark mode.
+ */
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import {
   ChartContainer,

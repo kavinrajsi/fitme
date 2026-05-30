@@ -1,3 +1,19 @@
+/**
+ * Dashboard — main overview page. Server component.
+ *
+ * Data flow (runs on every page load):
+ * 1. If the Google token is valid, fetch live data from Google Fit in parallel
+ *    (health summary, 7-day steps, body metrics).
+ * 2. Upsert historical days first (steps only, calories=0) then upsert today's
+ *    full row (steps + calories + heart rate) LAST — order matters because both
+ *    upserts target the same (user_id, date) unique key and we don't want the
+ *    historical pass to overwrite today's accurate calorie count with 0.
+ * 3. Always read stats and chart data from the DB, so expired-token users still
+ *    see their last synced data rather than an empty dashboard.
+ *
+ * The leaderboard top-5 is fetched in the same Promise.all as the DB reads
+ * so it adds zero additional latency.
+ */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getHealthSummary, getDailySteps, getBodyMetrics } from '@/lib/google-fit'

@@ -1,5 +1,22 @@
 'use client'
 
+/**
+ * Profile page — account settings. Client component (needs browser Supabase for
+ * reading the session without a server round-trip).
+ *
+ * On mount, loads `full_name` from the profiles table. If `full_name` is null
+ * (user has never edited their profile), it falls back to the Google display name
+ * stored in Supabase user_metadata and immediately backfills it into the DB so
+ * future loads don't need the fallback.
+ *
+ * Sections:
+ * - Privacy: informational — all users appear on the leaderboard.
+ * - Appearance: System / Light / Dark theme switcher (persisted to localStorage).
+ * - Account form: editable name, read-only email, save button.
+ *
+ * Form submission calls the `updateProfile` server action with FormData.
+ * The server action returns { error } or { success } which is shown as an Alert.
+ */
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile } from '@/app/actions/auth'
