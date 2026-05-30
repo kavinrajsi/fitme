@@ -154,9 +154,9 @@ export default async function DashboardPage() {
           <AlertDescription className="text-sm text-gray-700">
             Connect your Google Fit account to see your health data.
           </AlertDescription>
-          <Link href="/auth/google" prefetch={false} className={buttonVariants({ size: 'sm', className: 'shrink-0' })}>
+          <a href="/auth/google" className={buttonVariants({ size: 'sm', className: 'shrink-0' })}>
             Connect Google Fit
-          </Link>
+          </a>
         </Alert>
       )}
 
@@ -165,9 +165,9 @@ export default async function DashboardPage() {
           <AlertDescription className="text-sm text-gray-700">
             Your Google Fit session expired — showing last synced data.
           </AlertDescription>
-          <Link href="/auth/google" prefetch={false} className={buttonVariants({ size: 'sm', className: 'shrink-0' })}>
+          <a href="/auth/google" className={buttonVariants({ size: 'sm', className: 'shrink-0' })}>
             Reconnect Google Fit
-          </Link>
+          </a>
         </Alert>
       )}
 

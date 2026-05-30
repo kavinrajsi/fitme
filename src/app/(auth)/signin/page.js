@@ -42,14 +42,13 @@ export default async function SignInPage({ searchParams }) {
         </Alert>
       )}
 
-      <Link
+      <a
         href="/auth/google"
-        prefetch={false}
         className={buttonVariants({ variant: 'outline', size: 'lg', className: 'w-full gap-2.5' })}
       >
         <GoogleIcon />
         Continue with Google
-      </Link>
+      </a>
 
       <p className="mt-6 text-[0.775rem] text-muted-foreground text-center leading-relaxed">
         By continuing, you agree to our{' '}
