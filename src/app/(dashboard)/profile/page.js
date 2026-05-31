@@ -1,22 +1,5 @@
 'use client'
 
-/**
- * Profile page — account settings. Client component (needs browser Supabase for
- * reading the session without a server round-trip).
- *
- * On mount, loads `full_name` from the profiles table. If `full_name` is null
- * (user has never edited their profile), it falls back to the Google display name
- * stored in Supabase user_metadata and immediately backfills it into the DB so
- * future loads don't need the fallback.
- *
- * Sections:
- * - Privacy: informational — all users appear on the leaderboard.
- * - Appearance: System / Light / Dark theme switcher (persisted to localStorage).
- * - Account form: editable name, read-only email, save button.
- *
- * Form submission calls the `updateProfile` server action with FormData.
- * The server action returns { error } or { success } which is shown as an Alert.
- */
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile } from '@/app/actions/auth'
@@ -27,9 +10,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { Icon } from '@/components/icon'
 
+const STREAK_THRESHOLD = 8000
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState({ full_name: '', avatar_url: null })
+  const [activityData, setActivityData] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
@@ -37,32 +24,29 @@ export default function ProfilePage() {
   useEffect(() => {
     const supabase = createClient()
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
 
       if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('full_name, bio, avatar_url')
-          .eq('id', user.id)
-          .single()
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().slice(0, 10)
 
-        const googleName =
-          user.user_metadata?.full_name ?? user.user_metadata?.name ?? ''
-        const fullName = data?.full_name || googleName
-        const avatarUrl = data?.avatar_url ?? user.user_metadata?.avatar_url ?? null
+        const [{ data: profileData }, { data: activity }] = await Promise.all([
+          supabase.from('profiles').select('full_name, bio, avatar_url').eq('id', user.id).single(),
+          supabase.from('health_daily').select('date, steps').eq('user_id', user.id).gte('date', thirtyDaysAgoStr).order('date', { ascending: false }),
+        ])
 
-        // Backfill Google name into profiles if not set yet
-        if (!data?.full_name && googleName) {
-          await supabase
-            .from('profiles')
-            .update({ full_name: googleName })
-            .eq('id', user.id)
+        const googleName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ''
+        const fullName = profileData?.full_name || googleName
+        const avatarUrl = profileData?.avatar_url ?? user.user_metadata?.avatar_url ?? null
+
+        if (!profileData?.full_name && googleName) {
+          await supabase.from('profiles').update({ full_name: googleName }).eq('id', user.id)
         }
 
         setProfile({ full_name: fullName, avatar_url: avatarUrl })
+        setActivityData(activity || [])
       }
       setLoading(false)
     }
@@ -81,11 +65,51 @@ export default function ProfilePage() {
   if (loading) return <p className="text-muted-foreground">Loading…</p>
 
   const initials = (profile.full_name || user?.email || '?')
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+    .split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+
+  // --- Calendar & streak computation ---
+  const now = new Date()
+  const todayStr = now.toISOString().slice(0, 10)
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const monthLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7 // Monday-first
+
+  const activityMap = Object.fromEntries(activityData.map(r => [r.date, r.steps]))
+
+  // Streak
+  let streak = 0
+  const checkDate = new Date()
+  if ((activityMap[todayStr] ?? 0) < STREAK_THRESHOLD) checkDate.setDate(checkDate.getDate() - 1)
+  for (let i = 0; i < 30; i++) {
+    const d = checkDate.toISOString().slice(0, 10)
+    if ((activityMap[d] ?? 0) >= STREAK_THRESHOLD) { streak++; checkDate.setDate(checkDate.getDate() - 1) }
+    else break
+  }
+
+  // Active days this month
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
+  const activeDaysThisMonth = activityData.filter(r => r.date.startsWith(monthPrefix) && r.steps >= STREAK_THRESHOLD).length
+
+  // Build calendar cells
+  const cells = []
+  for (let i = 0; i < startOffset; i++) {
+    const d = new Date(year, month, 1 - startOffset + i)
+    cells.push({ dayNum: d.getDate(), currentMonth: false, active: false, isToday: false, isFuture: false })
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d)
+    const dateStr = date.toISOString().slice(0, 10)
+    const isFuture = dateStr > todayStr
+    cells.push({
+      dateStr, dayNum: d, currentMonth: true, isToday: dateStr === todayStr,
+      active: !isFuture && (activityMap[dateStr] ?? 0) >= STREAK_THRESHOLD,
+      isFuture,
+    })
+  }
+  while (cells.length % 7 !== 0) cells.push(null)
+  const weeks = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7))
 
   return (
     <>
@@ -94,12 +118,81 @@ export default function ProfilePage() {
         <p className="text-muted-foreground text-sm">Manage your account details</p>
       </div>
 
+      {/* Activity calendar */}
+      <Card className="max-w-[540px] mb-6">
+        <CardContent className="pt-6">
+          <h2 className="text-xl font-bold mb-4">{monthLabel}</h2>
+          <div className="flex gap-5 mb-5">
+            <div>
+              <p className="text-xs text-muted-foreground">Your Streak</p>
+              <p className="text-lg font-bold">{streak} {streak === 1 ? 'day' : 'days'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Active Days</p>
+              <p className="text-lg font-bold">{activeDaysThisMonth}</p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            {/* Calendar grid */}
+            <div className="flex-1">
+              <div className="grid grid-cols-7 mb-2">
+                {DAY_LETTERS.slice(1).concat(DAY_LETTERS[0]).map((d, i) => (
+                  <div key={i} className="flex justify-center">
+                    <span className="text-[11px] text-muted-foreground font-medium">{d}</span>
+                  </div>
+                ))}
+              </div>
+              {weeks.map((week, wi) => (
+                <div key={wi} className="grid grid-cols-7 mb-1">
+                  {week.map((cell, ci) => (
+                    <div key={ci} className="flex justify-center py-0.5">
+                      {cell ? (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
+                          cell.active
+                            ? 'bg-foreground text-background'
+                            : cell.isToday
+                            ? 'border-2 border-foreground text-foreground'
+                            : cell.currentMonth && !cell.isFuture
+                            ? 'bg-muted text-muted-foreground'
+                            : 'text-muted-foreground/30'
+                        }`}>
+                          {cell.active
+                            ? <Icon name="directions_walk" size={15} />
+                            : cell.dayNum}
+                        </div>
+                      ) : <div className="w-8 h-8" />}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Weekly streak column */}
+            <div className="flex flex-col" style={{ paddingTop: '28px' }}>
+              {weeks.map((week, wi) => {
+                const weekActive = week.some(c => c?.active)
+                return (
+                  <div key={wi} className="flex justify-center items-center h-9 mb-1 py-0.5">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${weekActive ? 'bg-orange-400' : 'bg-muted'}`}>
+                      {weekActive && <Icon name="check" size={14} className="text-white" />}
+                    </div>
+                  </div>
+                )
+              })}
+              <div className="flex flex-col items-center mt-2">
+                <Icon name="local_fire_department" size={24} className="text-orange-500" />
+                <span className="text-sm font-bold text-orange-500">{streak}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="max-w-[540px] mb-6">
         <CardContent className="pt-6">
           <h2 className="text-base font-semibold mb-1">Privacy</h2>
-          <p className="text-muted-foreground text-sm mb-3">
-            Your steps appear on the leaderboard.
-          </p>
+          <p className="text-muted-foreground text-sm mb-3">Your steps appear on the leaderboard.</p>
           <p className="text-sm font-medium flex items-center gap-2">
             <Icon name="emoji_events" size={18} className="text-muted-foreground" /> Show me on the leaderboard
           </p>
