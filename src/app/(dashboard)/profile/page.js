@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { Icon } from '@/components/icon'
 
-const STREAK_THRESHOLD = 8000
+import { STREAK_THRESHOLD } from '@/lib/constants'
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 export default function ProfilePage() {

@@ -20,7 +20,10 @@ export async function signOut() {
 }
 
 export async function updateProfile(formData) {
-  const fullName = formData.get('full_name')
+  const fullName = formData.get('full_name')?.trim()
+  if (!fullName) return { error: 'Name cannot be empty.' }
+  if (fullName.length > 100) return { error: 'Name must be 100 characters or fewer.' }
+
   const supabase = await createClient()
 
   const {

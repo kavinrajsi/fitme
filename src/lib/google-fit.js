@@ -87,26 +87,19 @@ export async function getHealthSummary(googleAccessToken) {
   const today = todayRange()
   const week = weekRange()
 
-  const [stepsToday, calsToday, stepsWeek, activeData, distanceData] =
+  const [stepsToday, calsToday, activeData, distanceData] =
     await Promise.all([
       aggregate(googleAccessToken, 'com.google.step_count.delta', today),
       aggregate(googleAccessToken, 'com.google.calories.expended', today),
-      aggregate(googleAccessToken, 'com.google.step_count.delta', week),
       aggregate(googleAccessToken, 'com.google.active_minutes', today),
       aggregate(googleAccessToken, 'com.google.distance.delta', today),
     ])
-
-  const weeklyPoints = stepsWeek?.bucket ?? []
-  const activeDays = weeklyPoints.filter(
-    (b) => (b.dataset?.[0]?.point?.[0]?.value?.[0]?.intVal ?? 0) > 0
-  ).length
 
   const distM = distanceData?.bucket?.[0]?.dataset?.[0]?.point?.[0]?.value?.[0]?.fpVal ?? 0
 
   return {
     stepsToday: extractInt(stepsToday),
     caloriesToday: extractFp(calsToday),
-    activeDaysThisWeek: activeDays,
     activeMinutesToday: extractInt(activeData),
     distanceKm: distM ? Math.round(distM / 10) / 100 : 0,
   }
@@ -139,6 +132,7 @@ export async function getDailySteps(googleAccessToken) {
     const date = new Date(Number(bucket.startTimeMillis))
     return {
       date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      isoDate: date.toISOString().slice(0, 10),
       steps: bucket.dataset?.[0]?.point?.[0]?.value?.[0]?.intVal ?? 0,
       calories: Math.round(bucket.dataset?.[1]?.point?.[0]?.value?.[0]?.fpVal ?? 0),
     }
@@ -263,7 +257,7 @@ export async function getSleepData(googleAccessToken) {
   for (const pt of points) {
     const type = pt.value?.[0]?.intVal
     if (type !== 112) {
-      totalMs += Number(pt.endTimeNanos - pt.startTimeNanos) / 1e6
+      totalMs += Number(BigInt(pt.endTimeNanos) - BigInt(pt.startTimeNanos)) / 1e6
     }
   }
 

@@ -8,11 +8,9 @@ import { buttonVariants } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StepsBarChart } from '@/components/steps-bar-chart'
 import { Icon } from '@/components/icon'
+import { STEP_GOAL, STREAK_THRESHOLD } from '@/lib/constants'
 
 export const metadata = { title: 'Dashboard — FitMe' }
-
-const STEP_GOAL = 10000
-const STREAK_THRESHOLD = 8000
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -31,6 +29,12 @@ export default async function DashboardPage() {
     profile?.google_token_expires_at &&
     new Date(profile.google_token_expires_at) > new Date()
 
+  // Body metrics updated during sync — tracked here to avoid a second DB fetch
+  let updatedWeightKg = null
+  let updatedHeightCm = null
+  // activeDaysThisWeek computed from getDailySteps daily buckets (correct)
+  let activeDaysThisWeek = 0
+
   if (tokenValid) {
     try {
       const [health, dailySteps, body] = await Promise.all([
@@ -41,21 +45,21 @@ export default async function DashboardPage() {
 
       const today = new Date().toISOString().slice(0, 10)
 
+      // Compute active days from daily buckets (each bucket = one calendar day)
+      activeDaysThisWeek = dailySteps.filter(d => d.steps > 0).length
+
+      // Use API-authoritative isoDate from each bucket instead of index arithmetic
       if (dailySteps.length > 0) {
         const historicalRows = dailySteps
-          .map((d, i) => {
-            const date = new Date()
-            date.setDate(date.getDate() - (dailySteps.length - 1 - i))
-            return {
-              user_id: user.id,
-              date: date.toISOString().slice(0, 10),
-              steps: d.steps,
-              calories: d.calories ?? 0,
-              avg_heart_rate: null,
-              synced_at: new Date().toISOString(),
-            }
-          })
-          .filter((r) => r.date !== today)
+          .filter(d => d.isoDate && d.isoDate !== today)
+          .map(d => ({
+            user_id: user.id,
+            date: d.isoDate,
+            steps: d.steps,
+            calories: d.calories ?? 0,
+            avg_heart_rate: null,
+            synced_at: new Date().toISOString(),
+          }))
         if (historicalRows.length > 0) {
           await supabase.from('health_daily').upsert(historicalRows, { onConflict: 'user_id,date' })
         }
@@ -69,10 +73,13 @@ export default async function DashboardPage() {
         synced_at: new Date().toISOString(),
       }, { onConflict: 'user_id,date' })
 
-      const bodyUpdate = {}
-      if (body.weightKg !== null) bodyUpdate.weight_kg = body.weightKg
-      if (body.heightCm !== null) bodyUpdate.height_cm = body.heightCm
-      if (Object.keys(bodyUpdate).length > 0) {
+      // Track body updates locally so we don't need a second profiles fetch
+      if (body.weightKg !== null) updatedWeightKg = body.weightKg
+      if (body.heightCm !== null) updatedHeightCm = body.heightCm
+      if (updatedWeightKg !== null || updatedHeightCm !== null) {
+        const bodyUpdate = {}
+        if (updatedWeightKg !== null) bodyUpdate.weight_kg = updatedWeightKg
+        if (updatedHeightCm !== null) bodyUpdate.height_cm = updatedHeightCm
         await supabase.from('profiles').update(bodyUpdate).eq('id', user.id)
       }
     } catch {
@@ -84,25 +91,23 @@ export default async function DashboardPage() {
   const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10)
   const thirtyDaysAgo = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10)
 
+  // weekRows removed — chartData is derived from streakRows (7-day subset of 30-day query)
   const [
     { data: todayRow },
-    { data: weekRows },
-    { data: freshProfile },
     { data: topUsers },
     { data: streakRows },
     { data: pbRows },
   ] = await Promise.all([
     supabase.from('health_daily').select('steps, calories').eq('user_id', user.id).eq('date', today).maybeSingle(),
-    supabase.from('health_daily').select('date, steps').eq('user_id', user.id).gte('date', sevenDaysAgo).order('date', { ascending: true }),
-    supabase.from('profiles').select('weight_kg, height_cm').eq('id', user.id).single(),
     supabase.rpc('get_leaderboard', { period: 'today' }),
     supabase.from('health_daily').select('date, steps').eq('user_id', user.id).gte('date', thirtyDaysAgo).order('date', { ascending: false }),
     supabase.from('health_daily').select('steps').eq('user_id', user.id).lt('date', today).order('steps', { ascending: false }).limit(1),
   ])
 
   const hasData = !!todayRow
-  const weightKg = freshProfile?.weight_kg ?? profile?.weight_kg
-  const heightCm = freshProfile?.height_cm ?? profile?.height_cm
+  // Merge body updates locally — no second DB round-trip needed
+  const weightKg = updatedWeightKg ?? profile?.weight_kg
+  const heightCm = updatedHeightCm ?? profile?.height_cm
 
   // Gamification: streak
   const streakMap = Object.fromEntries((streakRows || []).map(r => [r.date, r.steps]))
@@ -147,10 +152,14 @@ export default async function DashboardPage() {
   else if (streak >= 3) badges.push({ icon: 'bolt', label: 'On a Roll', color: 'text-blue-500', title: '3-day active streak' })
   if (monthSteps >= 100000) badges.push({ icon: 'star', label: 'Century Club', color: 'text-purple-500', title: '100K steps this month' })
 
-  const chartData = (weekRows ?? []).map((r) => ({
-    date: new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-    steps: r.steps,
-  }))
+  // Derive 7-day chart from streakRows (already in memory) — avoids a separate weekRows query
+  const chartData = (streakRows ?? [])
+    .filter(r => r.date >= sevenDaysAgo)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(r => ({
+      date: new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      steps: r.steps,
+    }))
 
   const stats = hasData
     ? [

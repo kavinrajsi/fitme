@@ -43,9 +43,7 @@ export default async function LeaderboardPage({ searchParams }) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/signin')
 
-  const [{ data: rows }] = await Promise.all([
-    supabase.rpc('get_leaderboard', { period: tab }),
-  ])
+  const { data: rows } = await supabase.rpc('get_leaderboard', { period: tab })
 
   const dateLabel = getDateLabel(tab)
 

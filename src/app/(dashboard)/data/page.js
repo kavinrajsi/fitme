@@ -79,7 +79,8 @@ export default async function DataPage() {
     .order('date', { ascending: false })
     .limit(30)
 
-  const chartData = [...(dailySteps)].map((d) => ({ date: d.date, steps: d.steps }))
+  const activeDaysThisWeek = (dailySteps || []).filter(d => d.steps > 0).length
+  const chartData = dailySteps.map((d) => ({ date: d.date, steps: d.steps }))
 
   return (
     <>
@@ -97,7 +98,7 @@ export default async function DataPage() {
             <STAT icon="local_fire_department" label="Calories" value={`${health.caloriesToday.toLocaleString()} kcal`} />
             <STAT icon="timer" label="Active minutes" value={`${health.activeMinutesToday} min`} />
             <STAT icon="route" label="Distance" value={`${health.distanceKm} km`} />
-            <STAT icon="event_available" label="Active days (week)" value={`${health.activeDaysThisWeek} / 7`} />
+            <STAT icon="event_available" label="Active days (week)" value={`${activeDaysThisWeek} / 7`} />
           </div>
         </section>
       )}
