@@ -31,6 +31,18 @@ const TABS = [
 
 const MEDAL_COLORS = ['text-yellow-500', 'text-slate-400', 'text-amber-600']
 
+function getDateLabel(tab) {
+  const now = new Date()
+  const fmt = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  if (tab === 'today') return fmt(now)
+  if (tab === 'week') {
+    const start = new Date(now)
+    start.setDate(now.getDate() - 6)
+    return `${fmt(start)} – ${fmt(now)}`
+  }
+  return now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+}
+
 export default async function LeaderboardPage({ searchParams }) {
   const { tab: rawTab } = await searchParams
   const tab = TABS.find((t) => t.key === rawTab)?.key ?? 'today'
@@ -40,6 +52,7 @@ export default async function LeaderboardPage({ searchParams }) {
   if (!user) redirect('/signin')
 
   const { data: rows } = await supabase.rpc('get_leaderboard', { period: tab })
+  const dateLabel = getDateLabel(tab)
 
   return (
     <>
@@ -48,7 +61,7 @@ export default async function LeaderboardPage({ searchParams }) {
         <p className="text-muted-foreground text-sm">Top walkers among opted-in users</p>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-3">
         {TABS.map((t) => (
           <Link
             key={t.key}
@@ -63,6 +76,7 @@ export default async function LeaderboardPage({ searchParams }) {
           </Link>
         ))}
       </div>
+      <p className="text-xs text-muted-foreground mb-6">{dateLabel}</p>
 
       {!rows || rows.length === 0 ? (
         <Card className="max-w-[600px]">
