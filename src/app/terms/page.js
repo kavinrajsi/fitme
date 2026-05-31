@@ -5,7 +5,7 @@ export default function TermsPage() {
     <main className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-[720px] mx-auto">
         <h1 className="text-4xl font-bold mb-1">Terms of Service</h1>
-        <p className="text-muted-foreground text-sm mb-10">Effective date: 30 May 2025</p>
+        <p className="text-muted-foreground text-sm mb-10">Effective date: 31 May 2026</p>
 
         <p className="text-foreground/80 leading-relaxed text-[0.95rem] mb-8">
           Welcome to FitMe. By creating an account or using the app you agree to

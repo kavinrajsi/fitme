@@ -5,7 +5,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-[720px] mx-auto">
         <h1 className="text-4xl font-bold mb-1">Privacy Policy</h1>
-        <p className="text-muted-foreground text-sm mb-10">Effective date: 30 May 2025</p>
+        <p className="text-muted-foreground text-sm mb-10">Effective date: 31 May 2026</p>
 
         <p className="text-foreground/80 leading-relaxed text-[0.95rem] mb-8">
           FitMe takes your privacy seriously, especially because we handle
@@ -40,6 +40,7 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-6 space-y-1">
             <li>To authenticate you and maintain your session</li>
             <li>To display your fitness summary on the dashboard</li>
+            <li>To calculate your ranking on the company step-count leaderboard</li>
             <li>To refresh your Google Fit access when your token expires</li>
           </ul>
           <p className="mt-3">
