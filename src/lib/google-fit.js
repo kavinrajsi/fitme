@@ -122,7 +122,10 @@ export async function getDailySteps(googleAccessToken) {
     method: 'POST',
     headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
+      aggregateBy: [
+        { dataTypeName: 'com.google.step_count.delta' },
+        { dataTypeName: 'com.google.calories.expended' },
+      ],
       bucketByTime: { durationMillis: 86400000 },
       startTimeMillis: start.getTime(),
       endTimeMillis: now.getTime(),
@@ -137,6 +140,7 @@ export async function getDailySteps(googleAccessToken) {
     return {
       date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
       steps: bucket.dataset?.[0]?.point?.[0]?.value?.[0]?.intVal ?? 0,
+      calories: Math.round(bucket.dataset?.[1]?.point?.[0]?.value?.[0]?.fpVal ?? 0),
     }
   })
 }

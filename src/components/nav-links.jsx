@@ -18,6 +18,7 @@ const links = [
   { href: '/data',        label: 'Data',         icon: 'bar_chart' },
   { href: '/leaderboard', label: 'Leaderboard',  icon: 'emoji_events' },
   { href: '/profile',     label: 'Profile',      icon: 'person' },
+  { href: '/help',        label: 'Help',         icon: 'help' },
 ]
 
 export function NavLinks() {

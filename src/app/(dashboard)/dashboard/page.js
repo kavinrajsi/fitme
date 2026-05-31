@@ -50,7 +50,7 @@ export default async function DashboardPage() {
               user_id: user.id,
               date: date.toISOString().slice(0, 10),
               steps: d.steps,
-              calories: 0,
+              calories: d.calories ?? 0,
               avg_heart_rate: null,
               synced_at: new Date().toISOString(),
             }

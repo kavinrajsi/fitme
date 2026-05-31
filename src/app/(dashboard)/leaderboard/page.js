@@ -14,7 +14,6 @@ const TABS = [
 ]
 
 const MEDAL_COLORS = ['text-yellow-500', 'text-slate-400', 'text-amber-600']
-const TEAM_WEEKLY_GOAL = 500000
 
 function getDateLabel(tab) {
   const now = new Date()
@@ -44,16 +43,11 @@ export default async function LeaderboardPage({ searchParams }) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/signin')
 
-  const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10)
-
-  const [{ data: rows }, { data: teamRows }] = await Promise.all([
+  const [{ data: rows }] = await Promise.all([
     supabase.rpc('get_leaderboard', { period: tab }),
-    supabase.from('health_daily').select('steps').gte('date', sevenDaysAgo),
   ])
 
   const dateLabel = getDateLabel(tab)
-  const teamTotal = (teamRows || []).reduce((s, r) => s + (r.steps || 0), 0)
-  const teamGoalPct = Math.min(100, Math.round((teamTotal / TEAM_WEEKLY_GOAL) * 100))
 
   return (
     <>
@@ -62,24 +56,6 @@ export default async function LeaderboardPage({ searchParams }) {
         <p className="text-muted-foreground text-sm">Top walkers among opted-in users</p>
       </div>
 
-      <Card className="mb-6 border-primary/20 bg-primary/5">
-        <CardContent className="pt-5 pb-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Icon name="groups" size={20} className="text-primary" />
-              <span className="font-semibold text-sm">Team Weekly Challenge</span>
-            </div>
-            <span className="text-sm font-bold text-primary">{teamGoalPct}%</span>
-          </div>
-          <div className="h-2.5 bg-primary/20 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${teamGoalPct}%` }} />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {teamTotal.toLocaleString()} / {TEAM_WEEKLY_GOAL.toLocaleString()} steps this week
-            {teamGoalPct >= 100 ? ' — goal smashed! 🎯' : ''}
-          </p>
-        </CardContent>
-      </Card>
 
       <div className="flex gap-2 mb-3">
         {TABS.map((t) => (
