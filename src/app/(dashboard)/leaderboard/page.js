@@ -8,9 +8,10 @@ import { Icon } from '@/components/icon'
 export const metadata = { title: 'Leaderboard — FitMe' }
 
 const TABS = [
-  { key: 'today', label: 'Today' },
-  { key: 'week',  label: 'Last 7 days' },
-  { key: 'month', label: 'This month' },
+  { key: 'today',     label: 'Today' },
+  { key: 'yesterday', label: 'Yesterday' },
+  { key: 'week',      label: 'Last 7 days' },
+  { key: 'month',     label: 'This month' },
 ]
 
 const MEDAL_COLORS = ['text-yellow-500', 'text-slate-400', 'text-amber-600']
@@ -19,6 +20,11 @@ function getDateLabel(tab) {
   const now = new Date()
   const fmt = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   if (tab === 'today') return fmt(now)
+  if (tab === 'yesterday') {
+    const yesterday = new Date(now)
+    yesterday.setDate(now.getDate() - 1)
+    return fmt(yesterday)
+  }
   if (tab === 'week') {
     const start = new Date(now)
     start.setDate(now.getDate() - 6)
