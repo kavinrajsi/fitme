@@ -1,13 +1,15 @@
 /**
  * GET /auth/google — initiates Google OAuth via Supabase.
  *
- * Requests Google Fit scopes in addition to basic profile scopes so the
- * access token returned after consent can be used to call the Fitness REST API.
- * `access_type: offline` + `prompt: consent` ensures Google always returns a
- * refresh token (without consent prompt, refresh token is only issued on first auth).
+ * access_type:offline + prompt:consent ensures a refresh token is always returned.
+ * The callback URL must match the URI registered in Google Cloud Console.
  *
- * The callback URL must exactly match the URI registered in Google Cloud Console
- * (Supabase handles the exchange at its own /auth/v1/callback endpoint).
+ * Scopes requested and why:
+ *   activity_and_fitness  — steps, calories, distance, 7-day chart, activity
+ *                           sessions, leaderboard sync (nightly cron → health_daily)
+ *   health_metrics        — heart rate (Dashboard), weight + height (Profile)
+ *   sleep                 — last night's sleep duration (Dashboard + Data page)
+ *   profile               — display name and avatar saved on first sign-in
  */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
