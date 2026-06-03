@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { refreshGoogleToken } from '@/lib/google-auth'
-import { getHealthSummary, getDailySteps, getBodyMetrics, getSleepData, getActivitySessions } from '@/lib/google-data'
+import { getHealthSummary, getDailySteps, getBodyMetrics, getSleepWeek, getActivitySessions } from '@/lib/google-data'
+import { istIsoDate } from '@/lib/utils'
 
 export async function syncGoogleData() {
   const supabase = await createClient()
@@ -37,14 +38,13 @@ export async function syncGoogleData() {
   }
 
   try {
-    const today = new Date().toISOString().slice(0, 10)
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const today = istIsoDate(0)
 
-    const [health, dailySteps, body, sleep, activities] = await Promise.all([
+    const [health, dailySteps, body, sleepWeek, activities] = await Promise.all([
       getHealthSummary(accessToken),
       getDailySteps(accessToken),
       getBodyMetrics(accessToken),
-      getSleepData(accessToken),
+      getSleepWeek(accessToken),
       getActivitySessions(accessToken, 7),
     ])
 
@@ -57,7 +57,7 @@ export async function syncGoogleData() {
         calories: d.calories ?? 0,
         active_minutes: d.activeMinutes ?? null,
         distance_km: d.distanceKm ?? null,
-        sleep_minutes: d.isoDate === yesterday ? (sleep?.minutes ?? null) : null,
+        sleep_minutes: sleepWeek[d.isoDate]?.minutes ?? null,
         avg_heart_rate: null,
         synced_at: new Date().toISOString(),
       }))

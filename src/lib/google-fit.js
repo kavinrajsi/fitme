@@ -268,3 +268,43 @@ export async function getSleepData(googleAccessToken) {
   const mins = Math.floor((totalMs % 3600000) / 60000)
   return totalMs > 0 ? { display: `${hours}h ${mins}m`, minutes: Math.round(totalMs / 60000) } : null
 }
+
+// Returns sleep duration keyed by IST date string for the past 7 nights.
+export async function getSleepWeek(googleAccessToken) {
+  const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      aggregateBy: [{ dataTypeName: 'com.google.sleep.segment' }],
+      bucketByTime: { period: { type: 'day', value: 1, timeZoneId: 'Asia/Kolkata' } },
+      startTimeMillis: istMidnight(-7),
+      endTimeMillis: Date.now(),
+    }),
+    next: { revalidate: 300 },
+  })
+  if (!res.ok) return {}
+
+  const data = await res.json()
+  const result = {}
+
+  for (const bucket of data.bucket ?? []) {
+    const istDate = new Date(Number(bucket.startTimeMillis) + IST_OFFSET_MS)
+    const isoDate = istDate.toISOString().slice(0, 10)
+    const points = bucket.dataset?.[0]?.point ?? []
+
+    let totalMs = 0
+    for (const pt of points) {
+      if (pt.value?.[0]?.intVal !== 112) {
+        totalMs += Number(BigInt(pt.endTimeNanos) - BigInt(pt.startTimeNanos)) / 1e6
+      }
+    }
+
+    if (totalMs > 0) {
+      const h = Math.floor(totalMs / 3600000)
+      const m = Math.floor((totalMs % 3600000) / 60000)
+      result[isoDate] = { display: `${h}h ${m}m`, minutes: Math.round(totalMs / 60000) }
+    }
+  }
+
+  return result
+}

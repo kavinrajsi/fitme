@@ -227,3 +227,35 @@ export async function getSleepData(token) {
   const mins  = Math.floor((totalMs % 3600000) / 60000)
   return { display: `${hours}h ${mins}m`, minutes: Math.round(totalMs / 60000) }
 }
+
+// Returns sleep duration keyed by IST date string for the past 7 nights.
+export async function getSleepWeek(token) {
+  const startDate = isoDate(-7)
+  const data = await listPoints(
+    token,
+    'sleep',
+    `sleep.interval.civil_start_time >= "${startDate}"`
+  )
+
+  const result = {}
+  for (const pt of data?.dataPoints ?? []) {
+    const sleep = pt.sleepDataPoint
+    if (!sleep?.interval) continue
+    const start = new Date(sleep.interval.startTime ?? '')
+    const end   = new Date(sleep.interval.endTime ?? '')
+    if (isNaN(start) || isNaN(end) || end <= start) continue
+
+    // Key by the IST date of sleep start
+    const istStart = new Date(start.getTime() + IST_OFFSET_MS)
+    const date = istStart.toISOString().slice(0, 10)
+
+    const ms = end - start
+    const prev = (result[date]?.minutes ?? 0) * 60000
+    const total = prev + ms
+    const h = Math.floor(total / 3600000)
+    const m = Math.floor((total % 3600000) / 60000)
+    result[date] = { display: `${h}h ${m}m`, minutes: Math.round(total / 60000) }
+  }
+
+  return result
+}

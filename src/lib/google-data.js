@@ -72,3 +72,19 @@ export function getActivitySessions(token, days = 7) {
     }
   )
 }
+
+// Returns { [isoDate]: { display, minutes } } for the past 7 nights.
+// Per date: prefer whichever source reports more sleep.
+export function getSleepWeek(token) {
+  return both(
+    healthApi.getSleepWeek(token),
+    fitApi.getSleepWeek(token),
+    (h, f) => {
+      const merged = { ...(f ?? {}) }
+      for (const [date, data] of Object.entries(h ?? {})) {
+        if (!merged[date] || data.minutes >= merged[date].minutes) merged[date] = data
+      }
+      return merged
+    }
+  )
+}

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getHealthSummary, getDailySteps, getBodyMetrics, getSleepData, getActivitySessions } from '@/lib/google-data'
 import { refreshGoogleToken } from '@/lib/google-auth'
+import { istIsoDate } from '@/lib/utils'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -66,8 +67,8 @@ export default async function DashboardPage() {
         getActivitySessions(accessToken, 7),
       ])
 
-      const today = new Date().toISOString().slice(0, 10)
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+      const today = istIsoDate(0)
+      const yesterday = istIsoDate(-1)
 
       // Compute active days from daily buckets (each bucket = one calendar day)
       activeDaysThisWeek = dailySteps.filter(d => d.steps > 0).length
@@ -132,9 +133,9 @@ export default async function DashboardPage() {
     }
   }
 
-  const today = new Date().toISOString().slice(0, 10)
-  const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10)
-  const thirtyDaysAgo = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10)
+  const today = istIsoDate(0)
+  const sevenDaysAgo = istIsoDate(-6)
+  const thirtyDaysAgo = istIsoDate(-29)
 
   // weekRows removed — chartData is derived from streakRows (7-day subset of 30-day query)
   const [
