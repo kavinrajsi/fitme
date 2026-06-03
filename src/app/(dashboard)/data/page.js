@@ -22,6 +22,7 @@ import { refreshGoogleToken } from '@/lib/google-auth'
 import { Card, CardContent } from '@/components/ui/card'
 import { StepsBarChart } from '@/components/steps-bar-chart'
 import { Icon } from '@/components/icon'
+import { HistoryTable } from '@/components/history-table'
 
 export const metadata = { title: 'My Data — KyaReFitting aa' }
 
@@ -89,13 +90,35 @@ export default async function DataPage() {
     ? Math.round((weightKg / Math.pow(heightCm / 100, 2)) * 10) / 10
     : null
 
-  // Full history from DB
-  const { data: history } = await supabase
-    .from('health_daily')
-    .select('date, steps, calories, active_minutes, distance_km, sleep_minutes')
-    .eq('user_id', user.id)
-    .order('date', { ascending: false })
-    .limit(30)
+  // Full history + sessions from DB
+  const thirtyDaysAgo = new Date(Date.now() - 29 * 86400000).toISOString()
+  const [{ data: history }, { data: sessionRows }] = await Promise.all([
+    supabase
+      .from('health_daily')
+      .select('date, steps, calories, active_minutes, distance_km, sleep_minutes')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .limit(30),
+    supabase
+      .from('activity_sessions')
+      .select('name, icon, duration_min, steps, start_time')
+      .eq('user_id', user.id)
+      .gte('start_time', thirtyDaysAgo)
+      .order('start_time', { ascending: false }),
+  ])
+
+  // Group sessions by IST date for the drawer
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+  const sessionsByDate = {}
+  for (const s of sessionRows ?? []) {
+    const istDate = new Date(new Date(s.start_time).getTime() + IST_OFFSET_MS).toISOString().slice(0, 10)
+    ;(sessionsByDate[istDate] ??= []).push({
+      name: s.name,
+      icon: s.icon,
+      durationMin: s.duration_min,
+      steps: s.steps,
+    })
+  }
 
   const chartData = dailySteps.map((d) => ({
     date: new Date((d.isoDate || d.date) + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
@@ -216,51 +239,7 @@ export default async function DataPage() {
           <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">History — Last 30 days</h2>
           <Card>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Date</th>
-                      <th className="text-right px-4 py-3 font-medium text-muted-foreground">Steps</th>
-                      <th className="text-right px-4 py-3 font-medium text-muted-foreground">Calories</th>
-                      <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Active min</th>
-                      <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Distance</th>
-                      <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Sleep</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((row, i) => (
-                      <tr
-                        key={row.date}
-                        className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/30'}`}
-                      >
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {new Date(row.date + 'T00:00:00').toLocaleDateString('en-US', {
-                            weekday: 'short', month: 'short', day: 'numeric',
-                          })}
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium tabular-nums">
-                          {row.steps > 0 ? row.steps.toLocaleString() : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                          {row.calories > 0 ? `${row.calories.toLocaleString()} kcal` : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-muted-foreground hidden sm:table-cell">
-                          {row.active_minutes > 0 ? `${row.active_minutes} min` : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-muted-foreground hidden sm:table-cell">
-                          {row.distance_km > 0 ? `${row.distance_km} km` : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-muted-foreground hidden md:table-cell">
-                          {row.sleep_minutes > 0
-                            ? `${Math.floor(row.sleep_minutes / 60)}h ${row.sleep_minutes % 60}m`
-                            : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <HistoryTable history={history} sessionsByDate={sessionsByDate} />
             </CardContent>
           </Card>
         </section>
