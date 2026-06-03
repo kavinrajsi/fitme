@@ -72,7 +72,15 @@ export function SyncButton() {
           }
           if (data.complete) {
             completed = true
-            console.log('[Sync] all fetched data:', data.data)
+            const d = data.data
+            console.group('[Sync] completed')
+            console.table([d.health])
+            console.table(d.dailySteps)
+            console.table([d.body])
+            console.log('[Sync] sleepWeek:', d.sleepWeek)
+            console.table(d.activities)
+            console.log('[Sync] heartRateWeek:', d.heartRateWeek)
+            console.groupEnd()
             setPhase('success')
             router.refresh()
             break outer
@@ -80,7 +88,9 @@ export function SyncButton() {
           if (data.step) {
             setStepStatus(prev => ({ ...prev, [data.step]: data.done ? 'done' : 'active' }))
             if (data.done && data.debug !== undefined) {
-              console.log(`[Sync] ${data.step}:`, data.debug)
+              Array.isArray(data.debug)
+                ? console.table(data.debug)
+                : console.log(`[Sync] ${data.step}:`, data.debug)
             }
           }
         }
