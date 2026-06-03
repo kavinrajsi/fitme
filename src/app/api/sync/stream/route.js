@@ -140,6 +140,7 @@ export async function GET() {
           calories: health?.caloriesToday ?? 0,
           active_minutes: health?.activeMinutesToday ?? null,
           distance_km: health?.distanceKm ?? null,
+          sleep_minutes: sleepWeek[today]?.minutes ?? null,
           avg_heart_rate: heartRateWeek[today] ?? null,
           synced_at: new Date().toISOString(),
         }, { onConflict: 'user_id,date' })
