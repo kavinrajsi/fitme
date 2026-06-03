@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { Icon } from '@/components/icon'
 import { useRouter } from 'next/navigation'
 
@@ -15,33 +15,30 @@ const STEPS = [
   { key: 'saving',      label: 'Saving' },
 ]
 
+function fmtDate(isoDate, today) {
+  const label = new Date(isoDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return isoDate === today ? `${label} · today` : label
+}
+
 export function SyncButton() {
+  const [open, setOpen] = useState(false)
   const [phase, setPhase] = useState('idle') // 'idle' | 'running' | 'success' | 'error'
   const [stepStatus, setStepStatus] = useState({})
+  const [stepDebug, setStepDebug] = useState({})
   const [errorMsg, setErrorMsg] = useState(null)
-  const [showPanel, setShowPanel] = useState(false)
-  const wrapperRef = useRef(null)
   const router = useRouter()
 
-  useEffect(() => {
-    if (!showPanel) return
-    function onMouseDown(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setShowPanel(false)
-      }
-    }
-    document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
-  }, [showPanel])
-
   const doneCount = STEPS.filter(s => stepStatus[s.key] === 'done').length
+  const resolvedSteps = stepDebug.saving?.dailySteps ?? []
+  const todayIso = stepDebug.saving?.today
 
   async function handleSync() {
     if (phase === 'running') return
+    setOpen(true)
     setPhase('running')
     setStepStatus({})
+    setStepDebug({})
     setErrorMsg(null)
-    setShowPanel(true)
 
     try {
       const response = await fetch('/api/sync/stream')
@@ -88,6 +85,7 @@ export function SyncButton() {
           if (data.step) {
             setStepStatus(prev => ({ ...prev, [data.step]: data.done ? 'done' : 'active' }))
             if (data.done && data.debug !== undefined) {
+              setStepDebug(prev => ({ ...prev, [data.step]: data.debug }))
               Array.isArray(data.debug)
                 ? console.table(data.debug)
                 : console.log(`[Sync] ${data.step}:`, data.debug)
@@ -106,14 +104,18 @@ export function SyncButton() {
     }
   }
 
+  const drawerTitle =
+    phase === 'running' ? 'Syncing…' :
+    phase === 'success' ? 'Synced' :
+    phase === 'error'   ? 'Sync failed' : 'Sync'
+
   return (
-    <div className="relative" ref={wrapperRef}>
+    <>
       <button
         onClick={handleSync}
         disabled={phase === 'running'}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Sync with Google"
-        title={phase === 'error' ? errorMsg : 'Sync with Google'}
       >
         <Icon
           name="sync"
@@ -121,36 +123,73 @@ export function SyncButton() {
           className={phase === 'running' ? '[animation:spin_1s_linear_infinite]' : ''}
         />
         <span className="hidden sm:inline">
-          {phase === 'running' ? 'Syncing…' : phase === 'success' ? 'Synced' : 'Sync'}
+          {phase === 'running' ? 'Syncing…' : 'Sync'}
         </span>
       </button>
 
-      {showPanel && (
-        <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-border bg-background shadow-lg p-3 z-50">
-          <div className="h-1 rounded-full bg-muted overflow-hidden mb-3">
+      {/* Backdrop */}
+      <div
+        onClick={() => phase !== 'running' && setOpen(false)}
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      />
+
+      {/* Drawer */}
+      <div className={`fixed top-0 right-0 z-50 h-full w-80 max-w-[90vw] bg-background border-l border-border shadow-xl flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Icon
+              name="sync"
+              size={18}
+              className={
+                phase === 'running' ? '[animation:spin_1s_linear_infinite] text-primary' :
+                phase === 'success' ? 'text-green-500' :
+                phase === 'error'   ? 'text-destructive' :
+                'text-muted-foreground'
+              }
+            />
+            <span className="font-semibold">{drawerTitle}</span>
+          </div>
+          <button
+            onClick={() => phase !== 'running' && setOpen(false)}
+            disabled={phase === 'running'}
+            aria-label="Close"
+            className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+          >
+            <Icon name="close" size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
+
+          {/* Progress bar */}
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full rounded-full bg-primary transition-all duration-300"
+              className={`h-full rounded-full transition-all duration-300 ${phase === 'error' ? 'bg-destructive' : 'bg-primary'}`}
               style={{ width: `${(doneCount / STEPS.length) * 100}%` }}
             />
           </div>
 
-          <ul className="space-y-1.5">
+          {/* Step list */}
+          <ul className="space-y-3">
             {STEPS.map(s => {
               const status = stepStatus[s.key]
               return (
-                <li key={s.key} className="flex items-center gap-2 text-xs">
+                <li key={s.key} className="flex items-center gap-2.5">
                   {status === 'done' ? (
-                    <Icon name="check_circle" size={14} className="text-green-500 shrink-0" />
+                    <Icon name="check_circle" size={16} className="text-green-500 shrink-0" />
                   ) : status === 'active' ? (
-                    <Icon name="sync" size={14} className="[animation:spin_1s_linear_infinite] text-primary shrink-0" />
+                    <Icon name="sync" size={16} className="[animation:spin_1s_linear_infinite] text-primary shrink-0" />
                   ) : (
-                    <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/25 shrink-0 inline-block" />
+                    <span className="w-4 h-4 rounded-full border border-muted-foreground/25 shrink-0 inline-block" />
                   )}
-                  <span className={
+                  <span className={`text-sm ${
                     status === 'done'   ? 'text-foreground' :
                     status === 'active' ? 'text-foreground font-medium' :
-                    'text-muted-foreground/50'
-                  }>
+                    'text-muted-foreground/40'
+                  }`}>
                     {s.label}
                   </span>
                 </li>
@@ -158,11 +197,35 @@ export function SyncButton() {
             })}
           </ul>
 
-          {phase === 'error' && errorMsg && (
-            <p className="mt-2 text-xs text-destructive border-t border-border pt-2">{errorMsg}</p>
+          {/* Daily steps breakdown — appears after saving completes */}
+          {resolvedSteps.length > 0 && (
+            <div className="border-t border-border pt-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                Daily steps
+              </p>
+              <ul className="space-y-2.5">
+                {[...resolvedSteps].reverse().map(({ date, steps }) => (
+                  <li key={date} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{fmtDate(date, todayIso)}</span>
+                    <span className={`text-sm tabular-nums ${steps > 0 ? 'font-semibold' : 'text-muted-foreground/40'}`}>
+                      {steps.toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
+
+          {/* Error message */}
+          {phase === 'error' && errorMsg && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
+              <Icon name="error" size={16} className="text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{errorMsg}</p>
+            </div>
+          )}
+
         </div>
-      )}
-    </div>
+      </div>
+    </>
   )
 }
