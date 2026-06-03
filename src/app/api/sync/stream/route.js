@@ -104,7 +104,18 @@ export async function GET() {
         emit({ step: 'sleep', done: true, debug: sleepWeek })
 
         emit({ step: 'activities', done: false })
-        const activities = await getActivitySessions(accessToken, 7)
+        const activitiesRaw = await getActivitySessions(accessToken, 7)
+
+        // Deduplicate: same source can return the same workout twice with different IDs.
+        // Keep one entry per (startMs, endMs) window — prefer the one with more steps.
+        const activityMap = new Map()
+        for (const a of activitiesRaw ?? []) {
+          const key = `${a.startMs}-${a.endMs}`
+          const existing = activityMap.get(key)
+          if (!existing || a.steps > existing.steps) activityMap.set(key, a)
+        }
+        const activities = Array.from(activityMap.values())
+
         emit({ step: 'activities', done: true, debug: activities.map(a => ({ date: a.date, name: a.name, steps: a.steps })) })
 
         emit({ step: 'heartrate', done: false })
@@ -118,7 +129,7 @@ export async function GET() {
         // Sum activity steps per IST date as fallback for days where the API returned 0
         const IST_MS = 5.5 * 60 * 60 * 1000
         const actStepsByDate = {}
-        for (const a of activities ?? []) {
+        for (const a of activities) {
           if (!a.startMs || !a.steps) continue
           const date = new Date(a.startMs + IST_MS).toISOString().slice(0, 10)
           actStepsByDate[date] = (actStepsByDate[date] ?? 0) + a.steps
