@@ -228,6 +228,20 @@ export async function getSleepData(token) {
   return { display: `${hours}h ${mins}m`, minutes: Math.round(totalMs / 60000) }
 }
 
+// Returns avg heart rate (bpm) keyed by IST date string for the past 7 days.
+export async function getHeartRateWeek(token) {
+  const start    = isoDate(-6)
+  const tomorrow = isoDate(1)
+  const data = await dailyRollUp(token, 'heart-rate', start, tomorrow)
+  const result = {}
+  for (const pt of data?.rollupDataPoints ?? []) {
+    const d = dateFromPoint(pt)
+    const bpm = pt.value?.heartRateRollupValue?.averageBeatsPerMinute
+    if (d && bpm) result[d] = Math.round(bpm)
+  }
+  return result
+}
+
 // Returns sleep duration keyed by IST date string for the past 7 nights.
 export async function getSleepWeek(token) {
   const startDate = isoDate(-7)

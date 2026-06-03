@@ -345,6 +345,32 @@ export async function getSleepData(googleAccessToken) {
   return totalMs > 0 ? { display: `${hours}h ${mins}m`, minutes: Math.round(totalMs / 60000) } : null
 }
 
+// Returns avg heart rate (bpm) keyed by IST date string for the past 7 days.
+export async function getHeartRateWeek(googleAccessToken) {
+  const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      aggregateBy: [{ dataTypeName: 'com.google.heart_rate.bpm' }],
+      bucketByTime: { durationMillis: 86400000 },
+      startTimeMillis: istMidnight(-6),
+      endTimeMillis: Date.now(),
+    }),
+    cache: 'no-store',
+  })
+  if (!res.ok) return {}
+
+  const data = await res.json()
+  const result = {}
+  for (const bucket of data.bucket ?? []) {
+    const istDate = new Date(Number(bucket.startTimeMillis) + IST_OFFSET_MS)
+    const isoDate = istDate.toISOString().slice(0, 10)
+    const bpm = bucket.dataset?.[0]?.point?.[0]?.value?.[0]?.fpVal
+    if (bpm) result[isoDate] = Math.round(bpm)
+  }
+  return result
+}
+
 // Returns sleep duration keyed by IST date string for the past 7 nights.
 export async function getSleepWeek(googleAccessToken) {
   const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {

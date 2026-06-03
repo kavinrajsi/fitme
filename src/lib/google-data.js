@@ -73,6 +73,21 @@ export function getActivitySessions(token, days = 7) {
   )
 }
 
+export function getHeartRateWeek(token) {
+  return both(
+    healthApi.getHeartRateWeek(token),
+    fitApi.getHeartRateWeek(token),
+    (h, f) => {
+      // Merge both sources; Health API takes precedence per date
+      const merged = { ...(f ?? {}) }
+      for (const [date, bpm] of Object.entries(h ?? {})) {
+        merged[date] = bpm
+      }
+      return merged
+    }
+  )
+}
+
 // Health API has no intra-day granularity — delegate directly to Fit.
 export function getActivityTimeline(token) {
   return fitApi.getActivityTimeline(token)
