@@ -20,7 +20,7 @@ import {
   getBodyMetrics,
   getSleepData,
   getActivitySessions,
-} from '@/lib/google-fit'
+} from '@/lib/google-data'
 import { refreshGoogleToken } from '@/lib/google-auth'
 
 function serviceClient() {

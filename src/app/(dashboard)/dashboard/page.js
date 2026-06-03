@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getHealthSummary, getDailySteps, getBodyMetrics, getSleepData, getActivitySessions } from '@/lib/google-fit'
+import { getHealthSummary, getDailySteps, getBodyMetrics, getSleepData, getActivitySessions } from '@/lib/google-data'
 import { refreshGoogleToken } from '@/lib/google-auth'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
