@@ -91,7 +91,7 @@ export default async function AdminPage() {
                 <tr className="border-b border-border">
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">User</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Email</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Fit</th>
+                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Google</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">Steps today</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Calories</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Active min</th>
