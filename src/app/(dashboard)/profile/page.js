@@ -10,7 +10,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { Icon } from '@/components/icon'
 
-import { STREAK_THRESHOLD } from '@/lib/constants'
+import { STREAK_THRESHOLD, IST_OFFSET_MS } from '@/lib/constants'
+import { istIsoDate } from '@/lib/utils'
 import { StreakInfoDrawer } from '@/components/streak-info-drawer'
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -19,49 +20,50 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState({ full_name: '', avatar_url: null })
   const [activityData, setActivityData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
 
   useEffect(() => {
     const supabase = createClient()
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
 
-      if (user) {
-        const thirtyDaysAgo = new Date()
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-        const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().slice(0, 10)
+        if (user) {
+          const thirtyDaysAgoStr = istIsoDate(-30)
+          const yesterdayStr     = istIsoDate(-1)
 
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayStr = yesterday.toISOString().slice(0, 10)
+          const [{ data: profileData }, { data: activity }, { data: yesterdayRow }] = await Promise.all([
+            supabase.from('profiles').select('full_name, bio, avatar_url, weight_kg, height_cm').eq('id', user.id).single(),
+            supabase.from('health_daily').select('date, steps').eq('user_id', user.id).gte('date', thirtyDaysAgoStr).order('date', { ascending: false }),
+            supabase.from('health_daily').select('sleep_minutes').eq('user_id', user.id).eq('date', yesterdayStr).maybeSingle(),
+          ])
 
-        const [{ data: profileData }, { data: activity }, { data: yesterdayRow }] = await Promise.all([
-          supabase.from('profiles').select('full_name, bio, avatar_url, weight_kg, height_cm').eq('id', user.id).single(),
-          supabase.from('health_daily').select('date, steps').eq('user_id', user.id).gte('date', thirtyDaysAgoStr).order('date', { ascending: false }),
-          supabase.from('health_daily').select('sleep_minutes').eq('user_id', user.id).eq('date', yesterdayStr).maybeSingle(),
-        ])
+          const googleName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ''
+          const fullName   = profileData?.full_name || googleName
+          const avatarUrl  = profileData?.avatar_url ?? user.user_metadata?.avatar_url ?? null
 
-        const googleName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ''
-        const fullName = profileData?.full_name || googleName
-        const avatarUrl = profileData?.avatar_url ?? user.user_metadata?.avatar_url ?? null
+          if (!profileData?.full_name && googleName) {
+            await supabase.from('profiles').update({ full_name: googleName }).eq('id', user.id)
+          }
 
-        if (!profileData?.full_name && googleName) {
-          await supabase.from('profiles').update({ full_name: googleName }).eq('id', user.id)
+          const weightKg     = profileData?.weight_kg ?? null
+          const heightCm     = profileData?.height_cm ?? null
+          const bmi          = weightKg && heightCm
+            ? Math.round((weightKg / Math.pow(heightCm / 100, 2)) * 10) / 10
+            : null
+          const sleepMinutes = yesterdayRow?.sleep_minutes ?? null
+
+          setProfile({ full_name: fullName, avatar_url: avatarUrl, weightKg, heightCm, bmi, sleepMinutes })
+          setActivityData(activity || [])
         }
-
-        const weightKg = profileData?.weight_kg ?? null
-        const heightCm = profileData?.height_cm ?? null
-        const bmi = weightKg && heightCm
-          ? Math.round((weightKg / Math.pow(heightCm / 100, 2)) * 10) / 10
-          : null
-        const sleepMinutes = yesterdayRow?.sleep_minutes ?? null
-
-        setProfile({ full_name: fullName, avatar_url: avatarUrl, weightKg, heightCm, bmi, sleepMinutes })
-        setActivityData(activity || [])
+      } catch {
+        setLoadError(true)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [])
@@ -75,29 +77,51 @@ export default function ProfilePage() {
     setSaving(false)
   }
 
-  if (loading) return <p className="text-center text-muted-foreground py-20">Loading…</p>
+  if (loading) return (
+    <div className="animate-pulse">
+      <div className="h-9 bg-muted rounded-lg w-32 mb-2" />
+      <div className="h-4 bg-muted rounded w-52 mb-6" />
+      <div className="h-64 bg-muted rounded-xl mb-6" />
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {[0, 1, 2, 3].map(i => <div key={i} className="h-20 bg-muted rounded-xl" />)}
+      </div>
+      <div className="h-24 bg-muted rounded-xl mb-6" />
+      <div className="h-24 bg-muted rounded-xl mb-6" />
+      <div className="h-56 bg-muted rounded-xl" />
+    </div>
+  )
+
+  if (loadError) return (
+    <div className="flex flex-col items-center gap-3 py-20 text-center">
+      <Icon name="error" size={32} className="text-muted-foreground" />
+      <p className="font-medium">Couldn&apos;t load profile data</p>
+      <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+      <button onClick={() => window.location.reload()} className="text-sm text-primary underline underline-offset-2 mt-1">
+        Reload
+      </button>
+    </div>
+  )
 
   const initials = (profile.full_name || user?.email || '?')
     .split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
 
-  // --- Calendar & streak computation ---
-  const now = new Date()
-  const todayStr = now.toISOString().slice(0, 10)
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const monthLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7 // Monday-first
+  // --- Calendar & streak computation (IST-aligned) ---
+  const todayStr   = istIsoDate(0)
+  const istNow     = new Date(Date.now() + IST_OFFSET_MS)
+  const year       = istNow.getUTCFullYear()
+  const month      = istNow.getUTCMonth()
+  const monthLabel = istNow.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
+  const daysInMonth  = new Date(year, month + 1, 0).getDate()
+  const startOffset  = (new Date(year, month, 1).getDay() + 6) % 7 // Monday-first
 
   const activityMap = Object.fromEntries(activityData.map(r => [r.date, r.steps]))
 
-  // Streak
+  // Streak — shift checkDate using IST date strings
   let streak = 0
-  const checkDate = new Date()
-  if ((activityMap[todayStr] ?? 0) < STREAK_THRESHOLD) checkDate.setDate(checkDate.getDate() - 1)
+  let streakOffset = (activityMap[todayStr] ?? 0) >= STREAK_THRESHOLD ? 0 : -1
   for (let i = 0; i < 30; i++) {
-    const d = checkDate.toISOString().slice(0, 10)
-    if ((activityMap[d] ?? 0) >= STREAK_THRESHOLD) { streak++; checkDate.setDate(checkDate.getDate() - 1) }
+    const d = istIsoDate(streakOffset - i)
+    if ((activityMap[d] ?? 0) >= STREAK_THRESHOLD) streak++
     else break
   }
 
@@ -112,8 +136,8 @@ export default function ProfilePage() {
     cells.push({ dayNum: d.getDate(), currentMonth: false, active: false, isToday: false, isFuture: false })
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(year, month, d)
-    const dateStr = date.toISOString().slice(0, 10)
+    // Build IST date string: shift day into UTC to get the IST calendar date
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     const isFuture = dateStr > todayStr
     cells.push({
       dateStr, dayNum: d, currentMonth: true, isToday: dateStr === todayStr,

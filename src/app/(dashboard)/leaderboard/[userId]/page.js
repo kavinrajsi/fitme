@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { istIsoDate } from '@/lib/utils'
+import { IST_OFFSET_MS } from '@/lib/constants'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -16,7 +17,6 @@ export default async function UserProfilePage({ params }) {
   if (!user) redirect('/signin')
 
   const thirtyDaysAgo = istIsoDate(-29)
-  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
 
   const [
     { data: todayRows },
