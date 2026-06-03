@@ -15,6 +15,7 @@
 import { signOut } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import { NavLinks } from '@/components/nav-links'
+import { SyncButton } from '@/components/sync-button'
 import { Icon } from '@/components/icon'
 import Link from 'next/link'
 
@@ -29,6 +30,8 @@ export default function DashboardLayout({ children }) {
         <div className="flex items-center gap-4 md:gap-6">
           {/* Desktop: text nav links */}
           <NavLinks />
+
+          <SyncButton />
 
           {/* Sign out — icon on mobile, button on desktop */}
           <form action={signOut}>
