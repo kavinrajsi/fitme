@@ -93,7 +93,7 @@ export async function GET() {
 
         emit({ step: 'steps', done: false })
         const dailySteps = await getDailySteps(accessToken)
-        emit({ step: 'steps', done: true, debug: dailySteps.map(d => ({ date: d.isoDate, steps: d.steps, calories: d.calories })) })
+        emit({ step: 'steps', done: true, debug: { count: dailySteps.length, raw: dailySteps.map(d => ({ date: d.isoDate, steps: d.steps })) } })
 
         emit({ step: 'body', done: false })
         const body = await getBodyMetrics(accessToken)
@@ -115,12 +115,21 @@ export async function GET() {
 
         const today = istIsoDate(0)
 
+        // Sum activity steps per IST date as fallback for days where the API returned 0
+        const IST_MS = 5.5 * 60 * 60 * 1000
+        const actStepsByDate = {}
+        for (const a of activities ?? []) {
+          if (!a.startMs || !a.steps) continue
+          const date = new Date(a.startMs + IST_MS).toISOString().slice(0, 10)
+          actStepsByDate[date] = (actStepsByDate[date] ?? 0) + a.steps
+        }
+
         const historicalRows = (dailySteps ?? [])
           .filter(d => d.isoDate && d.isoDate !== today)
           .map(d => ({
             user_id: user.id,
             date: d.isoDate,
-            steps: d.steps,
+            steps: d.steps > 0 ? d.steps : (actStepsByDate[d.isoDate] ?? 0),
             calories: d.calories ?? 0,
             active_minutes: d.activeMinutes ?? null,
             distance_km: d.distanceKm ?? null,
@@ -133,10 +142,14 @@ export async function GET() {
           await supabase.from('health_daily').upsert(historicalRows, { onConflict: 'user_id,date' })
         }
 
+        const todaySteps = (health?.stepsToday ?? 0) > 0
+          ? health.stepsToday
+          : (actStepsByDate[today] ?? 0)
+
         await supabase.from('health_daily').upsert({
           user_id: user.id,
           date: today,
-          steps: health?.stepsToday ?? 0,
+          steps: todaySteps,
           calories: health?.caloriesToday ?? 0,
           active_minutes: health?.activeMinutesToday ?? null,
           distance_km: health?.distanceKm ?? null,
