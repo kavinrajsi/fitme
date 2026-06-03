@@ -78,6 +78,10 @@ export function getActivityTimeline(token) {
   return fitApi.getActivityTimeline(token)
 }
 
+export function getStepSourceData(token) {
+  return fitApi.getStepSourceData(token)
+}
+
 // Returns { [isoDate]: { display, minutes } } for the past 7 nights.
 // Per date: prefer whichever source reports more sleep.
 export function getSleepWeek(token) {

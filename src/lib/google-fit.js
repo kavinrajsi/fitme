@@ -105,6 +105,31 @@ export async function getHealthSummary(googleAccessToken) {
   }
 }
 
+// Returns today's raw step segments (individual recorded points) from the
+// estimated_steps data source — same data Google Fit app shows per session.
+export async function getStepSourceData(googleAccessToken) {
+  const startMs = istMidnight(0)
+  const endMs   = Date.now()
+  const startNs = (BigInt(startMs) * 1000000n).toString()
+  const endNs   = (BigInt(endMs)   * 1000000n).toString()
+
+  const res = await fetch(
+    `${FITNESS_API}/dataSources/derived:com.google.step_count.delta:com.google.android.gms:estimated_steps/datasets/${startNs}-${endNs}`,
+    { headers: { Authorization: `Bearer ${googleAccessToken}` }, cache: 'no-store' }
+  )
+  if (!res.ok) return []
+
+  const data = await res.json()
+  return (data.point ?? [])
+    .filter(pt => (pt.value?.[0]?.intVal ?? 0) > 0)
+    .map(pt => ({
+      startMs: Number(BigInt(pt.startTimeNanos) / 1000000n),
+      endMs:   Number(BigInt(pt.endTimeNanos)   / 1000000n),
+      steps:   pt.value?.[0]?.intVal ?? 0,
+    }))
+    .sort((a, b) => a.startMs - b.startMs)
+}
+
 // Returns today's steps in six 4-hour IST-aligned slots.
 // Labels are the end of each slot: 4am, 8am, 12pm, 4pm, 8pm, 12am.
 export async function getActivityTimeline(googleAccessToken) {

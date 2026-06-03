@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getDailySteps, getActivityTimeline } from '@/lib/google-data'
+import { getDailySteps, getActivityTimeline, getStepSourceData } from '@/lib/google-data'
 import { refreshGoogleToken } from '@/lib/google-auth'
 import { Card, CardContent } from '@/components/ui/card'
 import { StepsBarChart } from '@/components/steps-bar-chart'
 import { ActivityTimeline } from '@/components/activity-timeline'
+import { StepSourceDrawer } from '@/components/step-source-drawer'
 
 export const metadata = { title: 'My Data — KyaReFitting aa' }
 
@@ -24,7 +25,7 @@ export default async function DataPage() {
     profile?.google_token_expires_at &&
     new Date(profile.google_token_expires_at) > new Date()
 
-  let dailySteps = [], timeline = []
+  let dailySteps = [], timeline = [], stepSource = []
   let sessionExpired = profile?.google_access_token && !tokenValid
 
   let accessToken = profile?.google_access_token
@@ -45,9 +46,10 @@ export default async function DataPage() {
 
   if (accessToken && (tokenValid || !sessionExpired)) {
     try {
-      ;[dailySteps, timeline] = await Promise.all([
+      ;[dailySteps, timeline, stepSource] = await Promise.all([
         getDailySteps(accessToken),
         getActivityTimeline(accessToken),
+        getStepSourceData(accessToken),
       ])
     } catch { /* token may be revoked */ }
   }
@@ -80,7 +82,10 @@ export default async function DataPage() {
 
       {timeline.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">Today&apos;s activity</h2>
+          <div className="flex items-center gap-3 mb-3">
+            <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Today&apos;s activity</h2>
+            <StepSourceDrawer steps={stepSource} />
+          </div>
           <Card>
             <CardContent className="pt-5 pb-5">
               <ActivityTimeline slots={timeline} />
