@@ -18,10 +18,13 @@
 
 const HEALTH_API = 'https://health.googleapis.com/v4/users/me/dataTypes'
 
+// Server runs UTC; shift by IST offset so UTC date components reflect the IST calendar date.
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+
 function isoDate(offsetDays = 0) {
-  const d = new Date()
-  if (offsetDays) d.setDate(d.getDate() + offsetDays)
-  return d.toISOString().slice(0, 10)
+  const ist = new Date(Date.now() + IST_OFFSET_MS)
+  if (offsetDays) ist.setUTCDate(ist.getUTCDate() + offsetDays)
+  return ist.toISOString().slice(0, 10)
 }
 
 // RollupDataPoint.startTime can be a civil-time object { year, month, day }

@@ -20,26 +20,26 @@
  */
 const FITNESS_API = 'https://www.googleapis.com/fitness/v1/users/me'
 
+// Server runs in UTC; IST is UTC+5:30. Shift Date.now() by the offset so
+// getUTCFullYear/Month/Date return the IST calendar date, then subtract the
+// offset again to get the correct UTC timestamp for IST midnight.
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+
+function istMidnight(daysOffset = 0) {
+  const ist = new Date(Date.now() + IST_OFFSET_MS)
+  return Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate() + daysOffset) - IST_OFFSET_MS
+}
+
 function todayRange() {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  return { startTimeMillis: start.getTime(), endTimeMillis: now.getTime() }
+  return { startTimeMillis: istMidnight(0), endTimeMillis: Date.now() }
 }
 
 function weekRange() {
-  const now = new Date()
-  const start = new Date(now)
-  start.setDate(now.getDate() - 6)
-  start.setHours(0, 0, 0, 0)
-  return { startTimeMillis: start.getTime(), endTimeMillis: now.getTime() }
+  return { startTimeMillis: istMidnight(-6), endTimeMillis: Date.now() }
 }
 
 function yesterdayRange() {
-  const now = new Date()
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const start = new Date(end)
-  start.setDate(end.getDate() - 1)
-  return { startTimeMillis: start.getTime(), endTimeMillis: end.getTime() }
+  return { startTimeMillis: istMidnight(-1), endTimeMillis: istMidnight(0) }
 }
 
 async function aggregate(token, dataTypeName, range) {
@@ -106,11 +106,6 @@ export async function getHealthSummary(googleAccessToken) {
 }
 
 export async function getDailySteps(googleAccessToken) {
-  const now = new Date()
-  const start = new Date(now)
-  start.setDate(now.getDate() - 6)
-  start.setHours(0, 0, 0, 0)
-
   const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
@@ -121,9 +116,10 @@ export async function getDailySteps(googleAccessToken) {
         { dataTypeName: 'com.google.active_minutes' },
         { dataTypeName: 'com.google.distance.delta' },
       ],
-      bucketByTime: { durationMillis: 86400000 },
-      startTimeMillis: start.getTime(),
-      endTimeMillis: now.getTime(),
+      // period-based bucketing aligns each bucket to IST midnight instead of UTC midnight
+      bucketByTime: { period: { type: 'day', value: 1, timeZoneId: 'Asia/Kolkata' } },
+      startTimeMillis: istMidnight(-6),
+      endTimeMillis: Date.now(),
     }),
     next: { revalidate: 300 },
   })
@@ -131,11 +127,13 @@ export async function getDailySteps(googleAccessToken) {
 
   const data = await res.json()
   return (data.bucket ?? []).map((bucket) => {
-    const date = new Date(Number(bucket.startTimeMillis))
+    // bucket.startTimeMillis is the IST midnight in UTC ms; shift into IST to read the date
+    const istDate = new Date(Number(bucket.startTimeMillis) + IST_OFFSET_MS)
+    const isoDate = istDate.toISOString().slice(0, 10)
     const distM = bucket.dataset?.[3]?.point?.[0]?.value?.[0]?.fpVal ?? 0
     return {
-      date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-      isoDate: date.toISOString().slice(0, 10),
+      date: new Date(isoDate + 'T12:00:00+05:30').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      isoDate,
       steps: bucket.dataset?.[0]?.point?.[0]?.value?.[0]?.intVal ?? 0,
       calories: Math.round(bucket.dataset?.[1]?.point?.[0]?.value?.[0]?.fpVal ?? 0),
       activeMinutes: bucket.dataset?.[2]?.point?.[0]?.value?.[0]?.intVal ?? 0,
