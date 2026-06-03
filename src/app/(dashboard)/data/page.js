@@ -8,18 +8,33 @@ import { StepsBarChart } from '@/components/steps-bar-chart'
 import { DayStepsChart } from '@/components/day-steps-chart'
 import { StepSourceDrawer } from '@/components/step-source-drawer'
 import { Icon } from '@/components/icon'
+import Link from 'next/link'
 
 export const metadata = { title: 'My Data — KyaReFitting aa' }
 
 function sessionDuration(startIso, endIso) {
-  const ms = new Date(endIso) - new Date(startIso)
-  const totalSecs = Math.round(ms / 1000)
+  const totalSecs = Math.round((new Date(endIso) - new Date(startIso)) / 1000)
   const mins = Math.floor(totalSecs / 60)
   const secs = totalSecs % 60
   return `${mins}m ${String(secs).padStart(2, '0')}s`
 }
 
-export default async function DataPage() {
+function shiftDate(isoDate, days) {
+  const d = new Date(isoDate + 'T12:00:00+05:30')
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+export default async function DataPage({ searchParams }) {
+  const { date } = await searchParams
+  const todayDate = istIsoDate(0)
+  const selectedDate = (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= todayDate)
+    ? date
+    : todayDate
+  const prevDate = shiftDate(selectedDate, -1)
+  const nextDate = shiftDate(selectedDate, 1)
+  const isToday  = selectedDate === todayDate
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/signin')
@@ -58,20 +73,21 @@ export default async function DataPage() {
     try {
       ;[dailySteps, dayBuckets, stepSource] = await Promise.all([
         getDailySteps(accessToken),
-        getDayStepBuckets(accessToken),
-        getStepSourceData(accessToken),
+        getDayStepBuckets(accessToken, selectedDate),
+        getStepSourceData(accessToken, selectedDate),
       ])
     } catch { /* token may be revoked */ }
   }
 
-  // Today's activity sessions from DB (synced by dashboard/sync)
-  const todayIso = istIsoDate(0)
-  const todayStartIST = new Date(todayIso + 'T00:00:00+05:30').toISOString()
+  // Sessions for the selected day from DB
+  const dayStartIST = new Date(selectedDate + 'T00:00:00+05:30').toISOString()
+  const dayEndIST   = new Date(new Date(selectedDate + 'T00:00:00+05:30').getTime() + 86400000).toISOString()
   const { data: todaySessions } = await supabase
     .from('activity_sessions')
     .select('name, icon, start_time, end_time, steps')
     .eq('user_id', user.id)
-    .gte('start_time', todayStartIST)
+    .gte('start_time', dayStartIST)
+    .lt('start_time', dayEndIST)
     .order('start_time', { ascending: true })
 
   const chartData = dailySteps.map((d) => ({
@@ -79,10 +95,9 @@ export default async function DataPage() {
     steps: d.steps,
   }))
 
-  const todayLabel = new Date(todayIso + 'T12:00:00+05:30').toLocaleDateString('en-US', {
+  const dateLabel = new Date(selectedDate + 'T12:00:00+05:30').toLocaleDateString('en-US', {
     weekday: 'long', day: 'numeric', month: 'long',
   })
-
   const totalStepsToday = dayBuckets.reduce((s, b) => s + b.steps, 0)
 
   return (
@@ -106,55 +121,83 @@ export default async function DataPage() {
         </div>
       )}
 
-      {dayBuckets.length > 0 && (
-        <section className="mb-10">
-          <div className="text-center mb-3">
-            <p className="text-base font-semibold">{todayLabel}</p>
-            <p className="text-sm text-muted-foreground">{totalStepsToday.toLocaleString()} steps</p>
+      <section className="mb-10">
+        {/* Date navigation */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Link
+            href={`/data?date=${prevDate}`}
+            className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            aria-label="Previous day"
+          >
+            <Icon name="chevron_left" size={22} />
+          </Link>
+
+          <div className="text-center min-w-[180px]">
+            <p className="font-semibold">{dateLabel}</p>
+            <p className="text-sm text-muted-foreground">
+              {totalStepsToday > 0 ? `${totalStepsToday.toLocaleString()} steps` : 'No data'}
+            </p>
           </div>
 
+          {isToday ? (
+            <span className="w-9 h-9 flex-shrink-0" />
+          ) : (
+            <Link
+              href={nextDate <= todayDate ? `/data?date=${nextDate}` : '/data'}
+              className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              aria-label="Next day"
+            >
+              <Icon name="chevron_right" size={22} />
+            </Link>
+          )}
+        </div>
+
+        {/* Intra-day chart */}
+        {dayBuckets.length > 0 && (
           <Card>
             <CardContent className="pt-4 pb-2 px-2">
               <DayStepsChart data={dayBuckets} />
             </CardContent>
           </Card>
+        )}
 
-          {/* Activity sessions */}
-          {todaySessions && todaySessions.length > 0 && (
-            <div className="mt-4 flex flex-col divide-y divide-border border-t border-border">
-              {todaySessions.map((s, i) => (
-                <div key={i} className="flex items-start gap-4 py-4">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-muted flex-shrink-0 mt-0.5">
-                    <Icon name={s.icon || 'directions_walk'} size={18} className="text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground mb-0.5">
-                      {new Date(s.start_time).toLocaleTimeString('en-IN', {
-                        timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true,
-                      })}
-                    </p>
-                    <p className="font-semibold">{s.name}</p>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
-                      <span>{sessionDuration(s.start_time, s.end_time)}</span>
-                      {s.steps > 0 && (
-                        <>
-                          <span>·</span>
-                          <Icon name="directions_walk" size={14} />
-                          <span>{s.steps.toLocaleString()} steps</span>
-                        </>
-                      )}
-                    </div>
+        {/* Activity sessions */}
+        {todaySessions && todaySessions.length > 0 && (
+          <div className="mt-2 flex flex-col divide-y divide-border border-t border-border">
+            {todaySessions.map((s, i) => (
+              <div key={i} className="flex items-start gap-4 py-4">
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-muted flex-shrink-0 mt-0.5">
+                  <Icon name={s.icon || 'directions_walk'} size={18} className="text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground mb-0.5">
+                    {new Date(s.start_time).toLocaleTimeString('en-IN', {
+                      timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true,
+                    })}
+                  </p>
+                  <p className="font-semibold">{s.name}</p>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                    <span>{sessionDuration(s.start_time, s.end_time)}</span>
+                    {s.steps > 0 && (
+                      <>
+                        <span>·</span>
+                        <Icon name="directions_walk" size={14} />
+                        <span>{s.steps.toLocaleString()} steps</span>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-4">
-            <StepSourceDrawer steps={stepSource} dateLabel={todayLabel} />
+              </div>
+            ))}
           </div>
-        </section>
-      )}
+        )}
+
+        {stepSource.length > 0 && (
+          <div className="mt-4">
+            <StepSourceDrawer steps={stepSource} dateLabel={dateLabel} />
+          </div>
+        )}
+      </section>
 
       {chartData.length > 0 && (
         <section className="mb-10">

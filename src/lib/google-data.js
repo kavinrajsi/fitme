@@ -78,12 +78,12 @@ export function getActivityTimeline(token) {
   return fitApi.getActivityTimeline(token)
 }
 
-export function getStepSourceData(token) {
-  return fitApi.getStepSourceData(token)
+export function getStepSourceData(token, isoDate) {
+  return fitApi.getStepSourceData(token, isoDate)
 }
 
-export function getDayStepBuckets(token) {
-  return fitApi.getDayStepBuckets(token)
+export function getDayStepBuckets(token, isoDate) {
+  return fitApi.getDayStepBuckets(token, isoDate)
 }
 
 // Returns { [isoDate]: { display, minutes } } for the past 7 nights.
