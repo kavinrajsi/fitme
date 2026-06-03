@@ -33,7 +33,7 @@ export default async function AdminPage() {
     service.from('health_daily').select('user_id, steps, calories, active_minutes, distance_km').eq('date', today),
     service.from('health_daily').select('user_id, steps').gte('date', sevenDaysAgo),
     service.from('activity_sessions').select('user_id, name, duration_min, start_time').gte('start_time', new Date(Date.now() - 7 * 86400000).toISOString()).order('start_time', { ascending: false }),
-    service.from('sync_logs').select('id, user_id, triggered_by, status, error, steps_today, days_written, created_at').order('created_at', { ascending: false }).limit(100),
+    service.from('sync_logs').select('id, user_id, triggered_by, status, error, steps_today, days_written, created_at').gte('created_at', new Date(Date.now() - 2 * 86400000).toISOString()).order('created_at', { ascending: false }),
   ])
 
   const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
@@ -150,7 +150,7 @@ export default async function AdminPage() {
 
       {/* Sync logs */}
       <section className="mb-10">
-        <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">Sync Logs — Last 100</h2>
+        <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">Sync Logs — Last 2 days</h2>
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
