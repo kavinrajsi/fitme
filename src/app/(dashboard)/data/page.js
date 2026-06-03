@@ -1,13 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getDailySteps, getActivityTimeline, getStepSourceData } from '@/lib/google-data'
+import { getDailySteps, getDayStepBuckets, getStepSourceData } from '@/lib/google-data'
 import { refreshGoogleToken } from '@/lib/google-auth'
+import { istIsoDate } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { StepsBarChart } from '@/components/steps-bar-chart'
-import { ActivityTimeline } from '@/components/activity-timeline'
+import { DayStepsChart } from '@/components/day-steps-chart'
 import { StepSourceDrawer } from '@/components/step-source-drawer'
+import { Icon } from '@/components/icon'
 
 export const metadata = { title: 'My Data — KyaReFitting aa' }
+
+function sessionDuration(startIso, endIso) {
+  const ms = new Date(endIso) - new Date(startIso)
+  const totalSecs = Math.round(ms / 1000)
+  const mins = Math.floor(totalSecs / 60)
+  const secs = totalSecs % 60
+  return `${mins}m ${String(secs).padStart(2, '0')}s`
+}
 
 export default async function DataPage() {
   const supabase = await createClient()
@@ -25,7 +35,7 @@ export default async function DataPage() {
     profile?.google_token_expires_at &&
     new Date(profile.google_token_expires_at) > new Date()
 
-  let dailySteps = [], timeline = [], stepSource = []
+  let dailySteps = [], dayBuckets = [], stepSource = []
   let sessionExpired = profile?.google_access_token && !tokenValid
 
   let accessToken = profile?.google_access_token
@@ -46,24 +56,40 @@ export default async function DataPage() {
 
   if (accessToken && (tokenValid || !sessionExpired)) {
     try {
-      ;[dailySteps, timeline, stepSource] = await Promise.all([
+      ;[dailySteps, dayBuckets, stepSource] = await Promise.all([
         getDailySteps(accessToken),
-        getActivityTimeline(accessToken),
+        getDayStepBuckets(accessToken),
         getStepSourceData(accessToken),
       ])
     } catch { /* token may be revoked */ }
   }
+
+  // Today's activity sessions from DB (synced by dashboard/sync)
+  const todayIso = istIsoDate(0)
+  const todayStartIST = new Date(todayIso + 'T00:00:00+05:30').toISOString()
+  const { data: todaySessions } = await supabase
+    .from('activity_sessions')
+    .select('name, icon, start_time, end_time, steps')
+    .eq('user_id', user.id)
+    .gte('start_time', todayStartIST)
+    .order('start_time', { ascending: true })
 
   const chartData = dailySteps.map((d) => ({
     date: new Date((d.isoDate || d.date) + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
     steps: d.steps,
   }))
 
+  const todayLabel = new Date(todayIso + 'T12:00:00+05:30').toLocaleDateString('en-US', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  })
+
+  const totalStepsToday = dayBuckets.reduce((s, b) => s + b.steps, 0)
+
   return (
     <>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-1">My Data</h1>
-        <p className="text-muted-foreground text-sm">Your step activity for the last 7 days</p>
+        <p className="text-muted-foreground text-sm">Your step activity</p>
       </div>
 
       {!profile?.google_access_token && (
@@ -80,17 +106,53 @@ export default async function DataPage() {
         </div>
       )}
 
-      {timeline.length > 0 && (
+      {dayBuckets.length > 0 && (
         <section className="mb-10">
-          <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Today&apos;s activity</h2>
-            <StepSourceDrawer steps={stepSource} />
+          <div className="text-center mb-3">
+            <p className="text-base font-semibold">{todayLabel}</p>
+            <p className="text-sm text-muted-foreground">{totalStepsToday.toLocaleString()} steps</p>
           </div>
+
           <Card>
-            <CardContent className="pt-5 pb-5">
-              <ActivityTimeline slots={timeline} />
+            <CardContent className="pt-4 pb-2 px-2">
+              <DayStepsChart data={dayBuckets} />
             </CardContent>
           </Card>
+
+          {/* Activity sessions */}
+          {todaySessions && todaySessions.length > 0 && (
+            <div className="mt-4 flex flex-col divide-y divide-border border-t border-border">
+              {todaySessions.map((s, i) => (
+                <div key={i} className="flex items-start gap-4 py-4">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-muted flex-shrink-0 mt-0.5">
+                    <Icon name={s.icon || 'directions_walk'} size={18} className="text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      {new Date(s.start_time).toLocaleTimeString('en-IN', {
+                        timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true,
+                      })}
+                    </p>
+                    <p className="font-semibold">{s.name}</p>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                      <span>{sessionDuration(s.start_time, s.end_time)}</span>
+                      {s.steps > 0 && (
+                        <>
+                          <span>·</span>
+                          <Icon name="directions_walk" size={14} />
+                          <span>{s.steps.toLocaleString()} steps</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-4">
+            <StepSourceDrawer steps={stepSource} dateLabel={todayLabel} />
+          </div>
         </section>
       )}
 

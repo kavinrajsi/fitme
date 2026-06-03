@@ -12,7 +12,7 @@ function fmt(ms) {
   })
 }
 
-export function StepSourceDrawer({ steps }) {
+export function StepSourceDrawer({ steps, dateLabel }) {
   const [open, setOpen] = useState(false)
   const total = steps.reduce((s, p) => s + p.steps, 0)
 
@@ -20,32 +20,31 @@ export function StepSourceDrawer({ steps }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+        className="text-sm text-primary hover:opacity-80 transition-opacity font-medium"
       >
         See source data
       </button>
 
-      {/* Backdrop */}
       {open && (
-        <div
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 z-40 bg-black/40"
-        />
+        <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/40" />
       )}
 
-      {/* Drawer */}
-      <div className={`fixed top-0 right-0 z-50 h-full w-80 max-w-[92vw] bg-background border-l border-border shadow-xl flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 z-50 h-full w-96 max-w-[96vw] bg-background flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div>
-            <p className="font-semibold">Source data — today</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {steps.length} segment{steps.length !== 1 ? 's' : ''} · {total.toLocaleString()} steps total
-            </p>
-          </div>
+          <p className="font-medium">{dateLabel}</p>
           <button onClick={() => setOpen(false)} aria-label="Close" className="text-muted-foreground hover:text-foreground transition-colors">
             <Icon name="close" size={22} />
           </button>
+        </div>
+
+        {/* Total */}
+        <div className="px-5 pt-6 pb-4 border-b border-border">
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-bold text-primary tabular-nums">{total.toLocaleString()}</span>
+            <span className="text-base text-primary font-medium">steps</span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">Steps · {steps.length} {steps.length === 1 ? 'entry' : 'entries'}</p>
         </div>
 
         {/* List */}
@@ -53,29 +52,12 @@ export function StepSourceDrawer({ steps }) {
           {steps.length === 0 ? (
             <p className="text-sm text-muted-foreground px-5 py-6">No step data recorded yet today.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-background border-b border-border">
-                <tr>
-                  <th className="text-left px-5 py-2.5 text-xs font-medium text-muted-foreground">Time</th>
-                  <th className="text-right px-5 py-2.5 text-xs font-medium text-muted-foreground">Steps</th>
-                </tr>
-              </thead>
-              <tbody>
-                {steps.map((pt, i) => (
-                  <tr key={i} className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/30'}`}>
-                    <td className="px-5 py-2.5 text-muted-foreground tabular-nums">
-                      {fmt(pt.startMs)}
-                      {pt.endMs - pt.startMs > 60000 && (
-                        <span className="text-xs ml-1">– {fmt(pt.endMs)}</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-2.5 text-right font-medium tabular-nums">
-                      {pt.steps.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            steps.map((pt, i) => (
+              <div key={i} className="px-5 py-3.5 border-b border-border last:border-0">
+                <p className="text-sm text-muted-foreground mb-0.5">{fmt(pt.startMs)}</p>
+                <p className="font-bold text-base">{pt.steps.toLocaleString()} {pt.steps === 1 ? 'step' : 'steps'}</p>
+              </div>
+            ))
           )}
         </div>
       </div>

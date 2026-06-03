@@ -105,6 +105,30 @@ export async function getHealthSummary(googleAccessToken) {
   }
 }
 
+// Returns today's steps in 48 half-hour IST-aligned buckets for the intra-day chart.
+export async function getDayStepBuckets(googleAccessToken) {
+  const startMs = istMidnight(0)
+  const endMs   = istMidnight(1)
+
+  const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
+      bucketByTime: { durationMillis: 30 * 60 * 1000 },
+      startTimeMillis: startMs,
+      endTimeMillis: endMs,
+    }),
+    cache: 'no-store',
+  })
+  if (!res.ok) return []
+
+  return ((await res.json()).bucket ?? []).slice(0, 48).map((bucket, i) => ({
+    index: i,
+    steps: bucket.dataset?.[0]?.point?.[0]?.value?.[0]?.intVal ?? 0,
+  }))
+}
+
 // Returns today's raw step segments (individual recorded points) from the
 // estimated_steps data source — same data Google Fit app shows per session.
 export async function getStepSourceData(googleAccessToken) {

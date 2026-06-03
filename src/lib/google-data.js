@@ -82,6 +82,10 @@ export function getStepSourceData(token) {
   return fitApi.getStepSourceData(token)
 }
 
+export function getDayStepBuckets(token) {
+  return fitApi.getDayStepBuckets(token)
+}
+
 // Returns { [isoDate]: { display, minutes } } for the past 7 nights.
 // Per date: prefer whichever source reports more sleep.
 export function getSleepWeek(token) {
