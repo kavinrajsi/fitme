@@ -353,7 +353,7 @@ export default async function DashboardPage() {
               const initials = (row.full_name || '?')
                 .split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
               return (
-                <Card key={row.user_id} className={isMe ? 'border-primary bg-primary/5' : ''}>
+                <Card key={row.user_id} className={isMe ? 'border-primary bg-primary/10' : ''}>
                   <CardContent className="py-3 px-4 flex items-center gap-3">
                     <span className="w-7 flex justify-center flex-shrink-0">
                       {medalColors[row.rank - 1]
