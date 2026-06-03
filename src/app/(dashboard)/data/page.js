@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getDailySteps } from '@/lib/google-data'
+import { getDailySteps, getActivityTimeline } from '@/lib/google-data'
 import { refreshGoogleToken } from '@/lib/google-auth'
 import { Card, CardContent } from '@/components/ui/card'
 import { StepsBarChart } from '@/components/steps-bar-chart'
+import { ActivityTimeline } from '@/components/activity-timeline'
 
 export const metadata = { title: 'My Data — KyaReFitting aa' }
 
@@ -23,7 +24,7 @@ export default async function DataPage() {
     profile?.google_token_expires_at &&
     new Date(profile.google_token_expires_at) > new Date()
 
-  let dailySteps = []
+  let dailySteps = [], timeline = []
   let sessionExpired = profile?.google_access_token && !tokenValid
 
   let accessToken = profile?.google_access_token
@@ -44,7 +45,10 @@ export default async function DataPage() {
 
   if (accessToken && (tokenValid || !sessionExpired)) {
     try {
-      dailySteps = await getDailySteps(accessToken)
+      ;[dailySteps, timeline] = await Promise.all([
+        getDailySteps(accessToken),
+        getActivityTimeline(accessToken),
+      ])
     } catch { /* token may be revoked */ }
   }
 
@@ -72,6 +76,17 @@ export default async function DataPage() {
           <p className="text-sm text-gray-700 dark:text-orange-200">Your Google Fit session expired — showing last synced data.</p>
           <a href="/auth/google" className="shrink-0 text-sm font-medium underline hover:opacity-80 transition-opacity">Reconnect</a>
         </div>
+      )}
+
+      {timeline.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wide mb-3">Today&apos;s activity</h2>
+          <Card>
+            <CardContent className="pt-5 pb-5">
+              <ActivityTimeline slots={timeline} />
+            </CardContent>
+          </Card>
+        </section>
       )}
 
       {chartData.length > 0 && (

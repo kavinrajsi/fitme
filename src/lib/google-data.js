@@ -73,6 +73,11 @@ export function getActivitySessions(token, days = 7) {
   )
 }
 
+// Health API has no intra-day granularity — delegate directly to Fit.
+export function getActivityTimeline(token) {
+  return fitApi.getActivityTimeline(token)
+}
+
 // Returns { [isoDate]: { display, minutes } } for the past 7 nights.
 // Per date: prefer whichever source reports more sleep.
 export function getSleepWeek(token) {

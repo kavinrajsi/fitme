@@ -105,6 +105,32 @@ export async function getHealthSummary(googleAccessToken) {
   }
 }
 
+// Returns today's steps in six 4-hour IST-aligned slots.
+// Labels are the end of each slot: 4am, 8am, 12pm, 4pm, 8pm, 12am.
+export async function getActivityTimeline(googleAccessToken) {
+  const startMs = istMidnight(0)
+  const endMs   = istMidnight(1)  // end of today IST
+
+  const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
+      bucketByTime: { durationMillis: 4 * 60 * 60 * 1000 },
+      startTimeMillis: startMs,
+      endTimeMillis: endMs,
+    }),
+    cache: 'no-store',
+  })
+  if (!res.ok) return []
+
+  const labels = ['4am', '8am', '12pm', '4pm', '8pm', '12am']
+  return (await res.json()).bucket?.slice(0, 6).map((bucket, i) => ({
+    time: labels[i],
+    steps: bucket.dataset?.[0]?.point?.[0]?.value?.[0]?.intVal ?? 0,
+  })) ?? []
+}
+
 export async function getDailySteps(googleAccessToken) {
   const res = await fetch(`${FITNESS_API}/dataset:aggregate`, {
     method: 'POST',
