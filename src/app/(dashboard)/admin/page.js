@@ -96,7 +96,7 @@ export default async function AdminPage() {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Calories</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Active min</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Week steps</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Weight</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Weight / Height</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden xl:table-cell">Last seen</th>
                 </tr>
               </thead>
@@ -137,6 +137,7 @@ export default async function AdminPage() {
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground hidden lg:table-cell">
                         {u.weight_kg ? `${u.weight_kg} kg` : '—'}
+                        {u.height_cm ? <span className="text-muted-foreground/60 ml-1">/ {u.height_cm} cm</span> : null}
                       </td>
                       <td className="px-4 py-3 text-right text-muted-foreground hidden xl:table-cell text-xs">{lastSeen}</td>
                     </tr>
