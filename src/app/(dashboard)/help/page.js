@@ -49,7 +49,7 @@ export default function HelpPage() {
         <p className="text-muted-foreground text-sm">Everything you need to know about KyaReFitting aa</p>
       </div>
 
-      <div className="max-w-[680px]">
+      <div>
 
         <Section icon="rocket_launch" title="Getting started">
           <p>

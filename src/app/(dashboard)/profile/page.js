@@ -132,7 +132,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Activity calendar */}
-      <Card className="max-w-[540px] mb-6">
+      <Card className="mb-6">
         <CardContent className="pt-6">
           <h2 className="text-xl font-bold mb-4">{monthLabel}</h2>
           <div className="flex gap-5 mb-5">
@@ -206,7 +206,7 @@ export default function ProfilePage() {
       </Card>
 
       {(profile.weightKg || profile.heightCm || profile.sleepMinutes) && (
-        <Card className="max-w-[540px] mb-6">
+        <Card className="mb-6">
           <CardContent className="pt-6">
             <h2 className="text-base font-semibold mb-4">Body</h2>
             <div className="grid grid-cols-2 gap-3">
@@ -253,7 +253,7 @@ export default function ProfilePage() {
         </Card>
       )}
 
-      <Card className="max-w-[540px] mb-6">
+      <Card className="mb-6">
         <CardContent className="pt-6">
           <h2 className="text-base font-semibold mb-1">Privacy</h2>
           <p className="text-muted-foreground text-sm mb-3">Your steps appear on the leaderboard.</p>
@@ -264,7 +264,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="max-w-[540px] mb-6">
+      <Card className="mb-6">
         <CardContent className="pt-6">
           <h2 className="text-base font-semibold mb-1">Appearance</h2>
           <p className="text-muted-foreground text-sm mb-4">
@@ -274,7 +274,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="max-w-[540px]">
+      <Card className="">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4 mb-7">
             <Avatar className="h-14 w-14 text-base font-bold">
