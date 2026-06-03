@@ -200,7 +200,12 @@ export async function GET() {
           days_written: historicalRows.length + 1,
         })
 
-        emit({ step: 'saving', done: true })
+        const resolvedDailySteps = [
+          ...historicalRows.map(r => ({ date: r.date, steps: r.steps })),
+          { date: today, steps: todaySteps },
+        ].sort((a, b) => a.date.localeCompare(b.date))
+
+        emit({ step: 'saving', done: true, debug: { today, dailySteps: resolvedDailySteps } })
         emit({
           complete: true,
           data: { health, dailySteps, body, sleepWeek, activities, heartRateWeek },
