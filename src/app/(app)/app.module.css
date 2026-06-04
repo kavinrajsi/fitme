@@ -1,0 +1,311 @@
+/* Shell + top nav */
+.shell {
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.signoutForm {
+  margin-left: auto;
+}
+
+.signout {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.signout:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+/* Page heading */
+.pageTitle {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.pageSub {
+  margin: 0 0 1.5rem;
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+/* User header (avatar + name) */
+.user {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.avatarFallback {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--background);
+  background: var(--foreground);
+}
+
+.userName {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.userEmail {
+  margin: 0;
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+/* Cards / panels */
+.card {
+  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--foreground) 3%, var(--background));
+  margin-bottom: 1.25rem;
+}
+
+.cardTitle {
+  margin: 0 0 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Stat grid */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--foreground) 3%, var(--background));
+}
+
+.statValue {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+/* Detail rows */
+.detailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.detailValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Steps table + bars */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr 4rem;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.rowDate {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.barTrack {
+  height: 14px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 7px;
+  background: var(--foreground);
+}
+
+.rowCount {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Manual entry form */
+.form {
+  margin-top: 0.5rem;
+}
+
+.fields {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.input {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border-radius: 8px;
+}
+
+.input:focus {
+  outline: 2px solid color-mix(in srgb, var(--foreground) 30%, transparent);
+  outline-offset: 1px;
+}
+
+/* Buttons / links */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.button:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.primary {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.primary:hover {
+  opacity: 0.9;
+  background: var(--foreground);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Messages */
+.hint,
+.note {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.note {
+  margin: 0 0 1rem;
+}
+
+.hint {
+  margin: 0 0 1rem;
+}
+
+.prompt {
+  text-align: center;
+  padding: 0.5rem 0 1rem;
+}

@@ -42,13 +42,14 @@ export async function proxy(request) {
 
   const { pathname } = request.nextUrl
 
-  // Send signed-in users away from the login page.
-  if (user && pathname === '/signin') {
-    return NextResponse.redirect(new URL('/', request.url))
+  // Send signed-in users from the login page / root to the dashboard.
+  if (user && (pathname === '/signin' || pathname === '/')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // Protect the profile and data pages for signed-out users.
-  if (!user && (pathname.startsWith('/profile') || pathname.startsWith('/data'))) {
+  // Protect the authenticated pages for signed-out users.
+  const protectedPaths = ['/dashboard', '/data', '/profile']
+  if (!user && protectedPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/signin', request.url))
   }
 

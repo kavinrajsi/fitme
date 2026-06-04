@@ -24,6 +24,6 @@ export async function saveManualBody(formData) {
 
   if (Object.keys(update).length) {
     await supabase.from('profiles').update(update).eq('id', user.id)
-    revalidatePath('/')
+    revalidatePath('/profile')
   }
 }
