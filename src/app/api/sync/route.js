@@ -1,5 +1,5 @@
 /**
- * POST /api/sync — nightly Google Fit sync for all users.
+ * POST /api/sync — nightly Google Health sync for all users.
  *
  * Called by Vercel Cron at midnight daily. Protected by CRON_SECRET so only
  * Vercel's scheduler can trigger it (Vercel injects the secret as an Authorization

@@ -20,7 +20,7 @@ export default function TermsPage() {
         <Section title="1. About KyaReFitting aa">
           <p>
             KyaReFitting aa is a personal fitness tracking application that connects to your
-            Google account to display health and activity data from Google Fit. It
+            Google account to display health and activity data from Google Health. It
             is provided for personal, non-commercial use.
           </p>
         </Section>
@@ -45,7 +45,7 @@ export default function TermsPage() {
 
         <Section title="4. Health data disclaimer">
           <p>
-            KyaReFitting aa displays data from Google Fit for informational purposes only.
+            KyaReFitting aa displays data from Google Health for informational purposes only.
             It is <strong>not</strong> a medical device and does not provide
             medical advice, diagnosis, or treatment. Do not rely on KyaReFitting aa data
             for medical decisions. Always consult a qualified healthcare

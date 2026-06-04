@@ -226,10 +226,10 @@ export default async function DashboardPage() {
       {!profile?.google_access_token && (
         <Alert className="mb-6 flex items-center justify-between gap-4 bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
           <AlertDescription className="text-sm text-gray-700 dark:text-blue-200">
-            Connect your Google Fit account to see your health data.
+            Connect your Google Health account to see your health data.
           </AlertDescription>
           <a href="/auth/google" className={buttonVariants({ size: 'sm', className: 'shrink-0' })}>
-            Connect Google Fit
+            Connect Google Health
           </a>
         </Alert>
       )}
@@ -237,10 +237,10 @@ export default async function DashboardPage() {
       {sessionExpired && (
         <Alert className="mb-6 flex items-center justify-between gap-4 bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800">
           <AlertDescription className="text-sm text-gray-700 dark:text-orange-200">
-            Your Google Fit session expired — showing last synced data.
+            Your Google Health session expired — showing last synced data.
           </AlertDescription>
           <a href="/auth/google" className={buttonVariants({ size: 'sm', className: 'shrink-0' })}>
-            Reconnect Google Fit
+            Reconnect Google Health
           </a>
         </Alert>
       )}

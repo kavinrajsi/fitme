@@ -90,7 +90,7 @@ export function StreakInfoDrawer() {
           </Section>
 
           <Section icon="info" iconClass="text-muted-foreground" title="Data source">
-            Streak data is pulled from your synced Google Fit history. Days before you connected Google Fit won't have step data and won't count toward a streak.
+            Streak data is pulled from your synced Google Health history. Days before you connected Google Health won't have step data and won't count toward a streak.
           </Section>
 
         </div>

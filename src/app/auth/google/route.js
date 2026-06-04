@@ -4,14 +4,8 @@
  * access_type:offline + prompt:consent ensures a refresh token is always returned.
  * The callback URL must match the URI registered in Google Cloud Console.
  *
- * Both Google Fit (fitness.*) and Google Health (googlehealth.*) scopes are requested
- * so google-data.js can call both APIs and pick whichever has data. Fitbit/Pixel Watch
- * users get Health API data; everyone else falls back to Google Fit automatically.
- *
- * Google Fit scopes:
- *   fitness.activity.read  — steps, calories, distance, activity sessions
- *   fitness.body.read      — weight, height
- *   fitness.sleep.read     — sleep duration
+ * Google Health (googlehealth.*) scopes are requested so google-data.js can read
+ * all health metrics from the Google Health API.
  *
  * Google Health scopes:
  *   activity_and_fitness   — steps, calories, distance, exercise sessions
@@ -49,11 +43,7 @@ export async function GET(request) {
       scopes: [
         'email',
         'profile',
-        // Google Fit — works for all Android users
-        'https://www.googleapis.com/auth/fitness.activity.read',
-        'https://www.googleapis.com/auth/fitness.body.read',
-        'https://www.googleapis.com/auth/fitness.sleep.read',
-        // Google Health — works for Fitbit/Pixel Watch users
+        // Google Health
         'https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly',
         'https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly',
         'https://www.googleapis.com/auth/googlehealth.sleep.readonly',

@@ -4,7 +4,7 @@ import { Icon } from '@/components/icon'
 
 export const metadata = {
   title: 'KyaReFitting aa — Your Personal Fitness Companion',
-  description: 'Track your steps, calories, workouts, and sleep. Sync with Google Fit and compete on the leaderboard.',
+  description: 'Track your steps, calories, workouts, and sleep. Sync with Google Health and compete on the leaderboard.',
 }
 
 export default function HomePage() {
@@ -29,7 +29,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl font-bold tracking-tight">Your Personal Fitness Companion</h1>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Sync with Google Fit to track your daily steps, calories, workouts, and sleep.
+            Sync with Google Health to track your daily steps, calories, workouts, and sleep.
             Compete with friends on the leaderboard and stay on top of your health goals.
           </p>
         </div>
@@ -57,7 +57,7 @@ export default function HomePage() {
             Get started with Google
           </a>
           <p className="text-xs text-muted-foreground">
-            Free to use. Connects to your existing Google Fit data.
+            Free to use. Connects to your existing Google Health data.
           </p>
         </div>
       </main>
