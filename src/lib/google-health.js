@@ -197,18 +197,23 @@ export async function getDailySteps(token, days = 90) {
  *   distance → distance.millimetersSum (mm → km)
  *   heart    → heartRate.beatsPerMinuteMin (used as a resting-HR proxy; no
  *              dedicated resting-heart-rate data type exists)
- * Sleep requires the googlehealth.sleep.readonly scope and is left null until the
- * user reconnects with it (and the shape is verified).
+ *   sleep    → sleep.interval.{startTime,endTime} from the list endpoint (sleep does
+ *              not support rollup); duration is attributed to the IST wake date.
+ *
+ * NOTE: sleep parsing follows the documented filter members (sleep.interval.end_time);
+ * it is defensive (any shape mismatch yields no sleep) and pending confirmation against
+ * a real sleep record.
  */
 export async function getDailyMetrics(token, days = 90) {
   const start = isoDate(-(days - 1))
   const end = isoDate(1)
 
-  const [stepsD, calD, distD, hrD] = await Promise.all([
+  const [stepsD, calD, distD, hrD, sleepD] = await Promise.all([
     dailyRollUp(token, 'steps', start, end),
     dailyRollUp(token, 'active-energy-burned', start, end),
     dailyRollUp(token, 'distance', start, end),
     dailyRollUp(token, 'heart-rate', start, end),
+    listSleep(token, days),
   ])
 
   const byDate = {}
@@ -240,5 +245,32 @@ export async function getDailyMetrics(token, days = 90) {
     if (k && min != null) row(k).resting_hr = Math.round(min)
   }
 
+  // Sleep sessions → minutes per night, keyed by the IST date the user woke up.
+  for (const pt of sleepD?.dataPoints ?? []) {
+    const iv = pt.sleep?.interval
+    const startT = iv?.startTime ?? iv?.start_time
+    const endT = iv?.endTime ?? iv?.end_time
+    if (!startT || !endT) continue
+    const mins = Math.round((new Date(endT).getTime() - new Date(startT).getTime()) / 60000)
+    if (!(mins > 0)) continue
+    const k = new Date(new Date(endT).getTime() + IST_OFFSET_MS).toISOString().slice(0, 10)
+    const r = row(k)
+    r.sleep_min = (r.sleep_min ?? 0) + mins
+  }
+
   return Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date))
+}
+
+// Sleep sessions for the last `days` days (sleep doesn't support dailyRollUp).
+// Filters by the documented member sleep.interval.end_time.
+async function listSleep(token, days) {
+  const since = isoDate(-(days - 1))
+  const params = new URLSearchParams({ pageSize: '200' })
+  params.set('filter', `sleep.interval.end_time >= "${since}T00:00:00Z"`)
+  const res = await fetch(`${HEALTH_API}/sleep/dataPoints?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) return null
+  return res.json()
 }
