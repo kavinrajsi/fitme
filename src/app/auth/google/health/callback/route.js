@@ -20,7 +20,7 @@ export async function GET(request) {
   cookieStore.delete('google_health_oauth_state')
 
   if (oauthError || !code || !state || state !== expectedState) {
-    return NextResponse.redirect(`${origin}/?health=connect_failed`)
+    return NextResponse.redirect(`${origin}/profile?health=connect_failed`)
   }
 
   const supabase = await createClient()
@@ -45,7 +45,7 @@ export async function GET(request) {
   })
 
   if (!res.ok) {
-    return NextResponse.redirect(`${origin}/?health=connect_failed`)
+    return NextResponse.redirect(`${origin}/profile?health=connect_failed`)
   }
   const token = await res.json()
 
@@ -62,5 +62,5 @@ export async function GET(request) {
     })
     .eq('id', user.id)
 
-  return NextResponse.redirect(`${origin}/?health=connected`)
+  return NextResponse.redirect(`${origin}/profile?health=connected`)
 }

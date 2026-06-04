@@ -40,8 +40,16 @@ export async function proxy(request) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (user && request.nextUrl.pathname === '/signin') {
+  const { pathname } = request.nextUrl
+
+  // Send signed-in users away from the login page.
+  if (user && pathname === '/signin') {
     return NextResponse.redirect(new URL('/', request.url))
+  }
+
+  // Protect the profile and data pages for signed-out users.
+  if (!user && (pathname.startsWith('/profile') || pathname.startsWith('/data'))) {
+    return NextResponse.redirect(new URL('/signin', request.url))
   }
 
   return supabaseResponse

@@ -47,31 +47,52 @@ async function dailyRollUp(token, dataType, startDate, endDate) {
   return res.json()
 }
 
+// GET list of individual data points for a data type (used where dailyRollUp is
+// unsupported, e.g. height).
+async function listPoints(token, dataType, pageSize = 50) {
+  const res = await fetch(`${HEALTH_API}/${dataType}/dataPoints?pageSize=${pageSize}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) return null
+  return res.json()
+}
+
 /**
- * Latest height (cm) and weight (kg) over the past year, or null per metric when
- * the Google Health API has no readings for this account.
+ * Latest height (cm) and weight (kg) from the Google Health API, or null per
+ * metric when there's no reading. Verified field shapes:
+ * - weight: dailyRollUp (capped at 90 days by the API) → weight.weightGramsAvg (grams).
+ * - height: does NOT support dailyRollUp → list dataPoints → height.heightMillimeters.
  */
 export async function getBodyMetrics(token) {
-  const start = isoDate(-365)
-  const tomorrow = isoDate(1)
-
   const [weightData, heightData] = await Promise.all([
-    dailyRollUp(token, 'weight', start, tomorrow),
-    dailyRollUp(token, 'height', start, tomorrow),
+    dailyRollUp(token, 'weight', isoDate(-89), isoDate(1)),
+    listPoints(token, 'height'),
   ])
 
-  // Most recent non-null reading (rollup returns oldest-first).
-  const weightPts = weightData?.rollupDataPoints ?? []
-  const heightPts = heightData?.rollupDataPoints ?? []
+  // Weight: most recent daily-average reading (grams → kg).
+  let latestWeightG = null
+  let latestWeightKey = ''
+  for (const pt of weightData?.rollupDataPoints ?? []) {
+    const g = pt.weight?.weightGramsAvg
+    const key = pointDate(pt) ?? ''
+    if (g != null && key >= latestWeightKey) {
+      latestWeightG = g
+      latestWeightKey = key
+    }
+  }
 
-  const latestWeightG = [...weightPts]
-    .reverse()
-    .find((pt) => pt.value?.weightRollupValue?.averageWeightGrams != null)
-    ?.value?.weightRollupValue?.averageWeightGrams
-  const latestHeightMm = [...heightPts]
-    .reverse()
-    .find((pt) => pt.value?.heightRollupValue?.averageHeightMillimeters != null)
-    ?.value?.heightRollupValue?.averageHeightMillimeters
+  // Height: most recent data point by sample time (mm → cm).
+  let latestHeightMm = null
+  let latestHeightTime = ''
+  for (const pt of heightData?.dataPoints ?? []) {
+    const mm = pt.height?.heightMillimeters
+    const t = pt.height?.sampleTime?.physicalTime ?? ''
+    if (mm != null && t >= latestHeightTime) {
+      latestHeightMm = Number(mm)
+      latestHeightTime = t
+    }
+  }
 
   return {
     weightKg: latestWeightG != null ? Math.round(latestWeightG / 100) / 10 : null,
@@ -91,4 +112,65 @@ export async function getHealthProfile(token) {
   if (!res.ok) return null
   const data = await res.json()
   return { age: data.age ?? null }
+}
+
+// Extract a YYYY-MM-DD key from a rollup point's civilStartTime ({date}) or
+// startTime (string), depending on which the API returns.
+function pointDate(pt) {
+  const c = pt?.civilStartTime?.date ?? pt?.civilStartTime
+  if (c?.year != null) {
+    return `${c.year}-${String(c.month).padStart(2, '0')}-${String(c.day).padStart(2, '0')}`
+  }
+  if (typeof pt?.startTime === 'string') return pt.startTime.slice(0, 10)
+  return null
+}
+
+/**
+ * Daily step counts for the last `days` days from the Google Health API.
+ * Requires the googlehealth.activity_and_fitness.readonly scope.
+ *
+ * Returns a newest-first series with missing days filled as 0, plus total /
+ * average / max (max is used by the UI to scale the bars). Returns null when the
+ * request fails (e.g. 403 because the health token lacks the activity scope), so
+ * the page can prompt a reconnect.
+ */
+export async function getDailySteps(token, days = 90) {
+  const start = isoDate(-(days - 1))
+  const tomorrow = isoDate(1)
+
+  const data = await dailyRollUp(token, 'steps', start, tomorrow)
+  if (!data) return null
+
+  // Map any returned rollups by date. The steps rollup value is { steps: { countSum } }.
+  const byDate = {}
+  for (const pt of data.rollupDataPoints ?? []) {
+    const key = pointDate(pt)
+    if (key) byDate[key] = Number(pt.steps?.countSum ?? 0)
+  }
+
+  // Build the full series, newest day first.
+  const series = []
+  let total = 0
+  let max = 0
+  for (let i = 0; i < days; i++) {
+    const iso = isoDate(-i)
+    const steps = byDate[iso] ?? 0
+    total += steps
+    if (steps > max) max = steps
+    series.push({
+      isoDate: iso,
+      label: new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      steps,
+    })
+  }
+
+  return {
+    days: series,
+    total,
+    average: Math.round(total / days),
+    max,
+  }
 }

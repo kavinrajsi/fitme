@@ -149,6 +149,19 @@
   margin-bottom: 1rem;
 }
 
+.link {
+  display: inline-block;
+  margin: 0.25rem 0 1rem;
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
 .form {
   margin: 0 0 0.75rem;
 }
