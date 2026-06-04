@@ -2,8 +2,7 @@
 
 /**
  * Supabase browser client — used only in Client Components (useEffect, event handlers).
- * Creates a new client instance per call; safe to call inside useEffect without memoising
- * because createBrowserClient is lightweight and manages its own singleton internally.
+ * createBrowserClient manages its own singleton internally, so calling this per use is safe.
  */
 import { createBrowserClient } from '@supabase/ssr'
 

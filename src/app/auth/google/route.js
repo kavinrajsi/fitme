@@ -1,40 +1,28 @@
 /**
  * GET /auth/google — initiates Google OAuth via Supabase.
  *
- * access_type:offline + prompt:consent ensures a refresh token is always returned.
- * The callback URL must match the URI registered in Google Cloud Console.
+ * Supabase returns the Google consent URL; we redirect the browser to it.
+ * After consent, Google sends the user back to /auth/callback (see redirectTo).
+ * The callback URL must match a redirect URI registered in Google Cloud Console
+ * and in the Supabase Auth provider settings.
  *
- * Google Health (googlehealth.*) scopes are requested so google-data.js can read
- * all health metrics from the Google Health API.
+ * Sign-in scopes are email/profile plus the People API demographics:
+ * - user.birthday.read / user.gender.read → People API birthday + gender (sensitive)
  *
- * Google Health scopes:
- *   activity_and_fitness   — steps, calories, distance, exercise sessions
- *   health_metrics         — weight, height, heart rate
- *   sleep                  — sleep duration
- *   profile                — display name, avatar
+ * The Google Health scopes are intentionally NOT requested here: the Google Health
+ * API rejects any token that also carries the People scopes
+ * (error DISALLOWED_OAUTH_SCOPES). Health uses a separate consent + token obtained
+ * via /auth/google/health (incremental authorization).
+ *
+ * access_type:offline + prompt:consent force Google to return a refresh token so
+ * the People API can be called later without re-authenticating.
  */
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request) {
   const { origin } = new URL(request.url)
-  const cookieStore = await cookies()
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -43,11 +31,8 @@ export async function GET(request) {
       scopes: [
         'email',
         'profile',
-        // Google Health
-        'https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly',
-        'https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly',
-        'https://www.googleapis.com/auth/googlehealth.sleep.readonly',
-        'https://www.googleapis.com/auth/googlehealth.profile.readonly',
+        'https://www.googleapis.com/auth/user.birthday.read',
+        'https://www.googleapis.com/auth/user.gender.read',
       ].join(' '),
       queryParams: {
         access_type: 'offline',

@@ -4,10 +4,10 @@
  *
  * Responsibilities:
  * - Refreshes the Supabase session cookie on every request so tokens stay alive.
- * - Redirects unauthenticated users away from protected routes (/dashboard, /profile).
- * - Redirects authenticated users away from /signin to avoid showing the login page.
+ * - Redirects already-authenticated users away from /signin.
  *
- * Protected path list must be kept in sync with actual dashboard routes.
+ * Note: getUser() must be called so the session is validated/refreshed; the
+ * supabaseResponse (with any refreshed cookies) must be the one returned.
  */
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
@@ -40,25 +40,14 @@ export async function proxy(request) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
-
-  const protectedPaths = ['/dashboard', '/profile', '/admin']
-
-  const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
-  const isSignIn = pathname === '/signin'
-  const isHome = pathname === '/'
-
-  if (!user && isProtected) {
-    return NextResponse.redirect(new URL('/signin', request.url))
-  }
-
-  if (user && (isSignIn || isHome)) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (user && request.nextUrl.pathname === '/signin') {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|auth).*)'],
+  // Run on all paths except Next.js internals and static assets.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
