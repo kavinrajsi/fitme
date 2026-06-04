@@ -4,8 +4,6 @@
  */
 import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
-import { getValidHealthAccessToken } from '@/lib/google-auth'
-import { getDailySteps } from '@/lib/google-health'
 import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -15,22 +13,19 @@ export const metadata = { title: 'Dashboard — KyaReFitting aa' }
 export default async function DashboardPage() {
   const d = await getUserDetails()
 
-  // Today's steps (one-day window) when Google Health is connected.
-  let stepsToday = null
+  // Today's metrics from the synced daily_metrics table (IST civil date).
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
+  const istToday = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10)
+  const { data: today } = await supabase
+    .from('daily_metrics')
+    .select('steps, calories, distance_km')
+    .eq('user_id', user.id)
+    .eq('date', istToday)
     .maybeSingle()
-  const token = await getValidHealthAccessToken(profile)
-  if (token) {
-    const s = await getDailySteps(token, 1)
-    stepsToday = s?.days?.[0]?.steps ?? null
-  }
+  const stepsToday = today?.steps ?? null
 
   const name = d?.name ?? 'there'
   const initial = (name?.[0] ?? d?.email?.[0] ?? '?').toUpperCase()

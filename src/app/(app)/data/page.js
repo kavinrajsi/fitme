@@ -1,11 +1,9 @@
 /**
- * /data — daily step counts (last 90 days) from the Google Health API (not Google
- * Fit). Uses the separate health token; prompts connect/reconnect when the token is
- * missing or lacks the activity_and_fitness scope.
+ * /data — daily steps (last 90 days) read from public.daily_metrics, which a daily
+ * cron syncs from the Google Health API. Prompts to connect Google Health when the
+ * user hasn't, or explains the sync hasn't run yet when there are no rows.
  */
 import { createClient } from '@/lib/supabase/server'
-import { getValidHealthAccessToken } from '@/lib/google-auth'
-import { getDailySteps } from '@/lib/google-health'
 import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -19,55 +17,60 @@ export default async function DataPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
 
-  const token = await getValidHealthAccessToken(profile)
-  const steps = token ? await getDailySteps(token, DAYS) : null
+  const [{ data: profile }, { data: rows }] = await Promise.all([
+    supabase.from('profiles').select('google_health_refresh_token').eq('id', user.id).maybeSingle(),
+    supabase
+      .from('daily_metrics')
+      .select('date, steps')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .limit(DAYS),
+  ])
+
+  const connected = !!profile?.google_health_refresh_token
+  const days = rows ?? []
+  const total = days.reduce((s, r) => s + (r.steps ?? 0), 0)
+  const max = days.reduce((m, r) => Math.max(m, r.steps ?? 0), 0)
+  const average = days.length ? Math.round(total / days.length) : 0
 
   return (
     <>
       <h1 className={styles.pageTitle}>Steps</h1>
       <p className={styles.pageSub}>Last {DAYS} days · Google Health</p>
 
-      {!token ? (
-        <ConnectPrompt
-          message="Connect Google Health to see your steps."
-          cta="Connect Google Health"
-        />
-      ) : steps === null ? (
-        <ConnectPrompt
-          message="Reconnect Google Health to grant access to steps."
-          cta="Reconnect Google Health"
-        />
+      {days.length === 0 ? (
+        <div className={styles.prompt}>
+          <p className={styles.note}>
+            {connected
+              ? 'No steps synced yet — the daily sync will populate this shortly.'
+              : 'Connect Google Health to start syncing your steps.'}
+          </p>
+          {!connected && (
+            <a href="/auth/google/health" className={`${styles.button} ${styles.primary}`}>
+              Connect Google Health
+            </a>
+          )}
+        </div>
       ) : (
         <>
           <div className={styles.stats}>
-            <Stat label="Total" value={steps.total.toLocaleString()} />
-            <Stat label="Daily avg" value={steps.average.toLocaleString()} />
+            <Stat label="Total" value={total.toLocaleString()} />
+            <Stat label="Daily avg" value={average.toLocaleString()} />
           </div>
-
-          {steps.max === 0 && (
-            <p className={styles.note}>
-              No step data for this account yet.
-            </p>
-          )}
 
           <div className={styles.card}>
             <ul className={styles.rows}>
-              {steps.days.map((day) => (
-                <li key={day.isoDate} className={styles.row}>
-                  <span className={styles.rowDate}>{day.label}</span>
+              {days.map((r) => (
+                <li key={r.date} className={styles.row}>
+                  <span className={styles.rowDate}>{formatDate(r.date)}</span>
                   <span className={styles.barTrack}>
                     <span
                       className={styles.bar}
-                      style={{ width: steps.max ? `${(day.steps / steps.max) * 100}%` : '0%' }}
+                      style={{ width: max ? `${((r.steps ?? 0) / max) * 100}%` : '0%' }}
                     />
                   </span>
-                  <span className={styles.rowCount}>{day.steps.toLocaleString()}</span>
+                  <span className={styles.rowCount}>{(r.steps ?? 0).toLocaleString()}</span>
                 </li>
               ))}
             </ul>
@@ -78,22 +81,15 @@ export default async function DataPage() {
   )
 }
 
+function formatDate(iso) {
+  return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 function Stat({ label, value }) {
   return (
     <div className={styles.stat}>
       <span className={styles.statValue}>{value}</span>
       <span className={styles.statLabel}>{label}</span>
-    </div>
-  )
-}
-
-function ConnectPrompt({ message, cta }) {
-  return (
-    <div className={styles.prompt}>
-      <p className={styles.note}>{message}</p>
-      <a href="/auth/google/health" className={`${styles.button} ${styles.primary}`}>
-        {cta}
-      </a>
     </div>
   )
 }

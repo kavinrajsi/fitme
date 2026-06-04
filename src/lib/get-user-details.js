@@ -76,9 +76,24 @@ export async function getUserDetails() {
     }
   }
 
-  // Manual self-entry overrides win over Google-sourced values.
-  const heightCm = profile.manual_height_cm ?? profile.height_cm ?? null
-  const weightKg = profile.manual_weight_kg ?? profile.weight_kg ?? null
+  const heightCm = profile.height_cm ?? null
+  const weightKg = profile.weight_kg ?? null
+
+  // BMI = kg / m². Category bands per WHO.
+  const bmi =
+    heightCm && weightKg
+      ? Math.round((weightKg / (heightCm / 100) ** 2) * 10) / 10
+      : null
+  const bmiCategory =
+    bmi == null
+      ? null
+      : bmi < 18.5
+        ? 'Underweight'
+        : bmi < 25
+          ? 'Normal'
+          : bmi < 30
+            ? 'Overweight'
+            : 'Obese'
 
   return {
     name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
@@ -86,6 +101,8 @@ export async function getUserDetails() {
     avatar: user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? null,
     heightCm,
     weightKg,
+    bmi,
+    bmiCategory,
     age: profile.age ?? null,
     gender: profile.gender ?? null,
     birthday: profile.birthday ?? null,
@@ -93,7 +110,5 @@ export async function getUserDetails() {
     healthConnected:
       profile.google_health_access_token != null ||
       profile.google_health_refresh_token != null,
-    // True when Google Health had no body metrics, so the UI can nudge manual entry.
-    noGoogleBody: profile.height_cm == null && profile.weight_kg == null,
   }
 }

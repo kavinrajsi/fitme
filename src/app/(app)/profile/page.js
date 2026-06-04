@@ -2,9 +2,7 @@
  * /profile — account details (from Google sign-in + Google Health + People), manual
  * height/weight entry, and Connect Google Health.
  */
-import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
-import { saveManualBody } from '../../actions/profile'
 import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -38,6 +36,7 @@ export default async function ProfilePage({ searchParams }) {
         <h2 className={styles.cardTitle}>Details</h2>
         <Detail label="Height" value={d?.heightCm != null ? `${d.heightCm} cm` : null} />
         <Detail label="Weight" value={d?.weightKg != null ? `${d.weightKg} kg` : null} />
+        <Detail label="BMI" value={d?.bmi != null ? `${d.bmi} (${d.bmiCategory})` : null} />
         <Detail label="Age" value={d?.age != null ? `${d.age}` : null} />
         <Detail label="Gender" value={d?.gender} />
         <Detail label="Birthday" value={d?.birthday} />
@@ -54,40 +53,6 @@ export default async function ProfilePage({ searchParams }) {
         </a>
       </div>
 
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Manual height &amp; weight</h2>
-        <form action={saveManualBody} className={styles.form}>
-          <div className={styles.fields}>
-            <label className={styles.field}>
-              <span>Height (cm)</span>
-              <input
-                className={styles.input}
-                type="number"
-                name="height_cm"
-                step="0.1"
-                min="0"
-                defaultValue={d?.heightCm ?? ''}
-                placeholder="175"
-              />
-            </label>
-            <label className={styles.field}>
-              <span>Weight (kg)</span>
-              <input
-                className={styles.input}
-                type="number"
-                name="weight_kg"
-                step="0.1"
-                min="0"
-                defaultValue={d?.weightKg ?? ''}
-                placeholder="70"
-              />
-            </label>
-          </div>
-          <button type="submit" className={`${styles.button} ${styles.primary} ${styles.fullWidth}`}>
-            Save height &amp; weight
-          </button>
-        </form>
-      </div>
     </>
   )
 }

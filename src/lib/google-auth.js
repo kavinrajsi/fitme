@@ -30,7 +30,9 @@ export async function refreshGoogleToken(refreshToken) {
  * 'health' (Google Health API). Returns null when there's no offline access (no
  * refresh token) or the refresh fails (e.g. 7-day expiry in an unverified app).
  */
-async function getValidToken(profile, kind) {
+// `client` lets callers pass a Supabase client to persist the refreshed token —
+// the user-session client by default, or the service-role client from the cron.
+async function getValidToken(profile, kind, client) {
   if (!profile) return null
 
   const cols =
@@ -60,7 +62,7 @@ async function getValidToken(profile, kind) {
     Date.now() + (refreshed.expires_in ?? 3600) * 1000
   ).toISOString()
 
-  const supabase = await createClient()
+  const supabase = client ?? (await createClient())
   await supabase
     .from('profiles')
     .update({ [cols.access]: accessToken, [cols.expires]: expiresAt })
@@ -70,11 +72,11 @@ async function getValidToken(profile, kind) {
 }
 
 // Sign-in token (carries People/identity scopes).
-export function getValidAccessToken(profile) {
-  return getValidToken(profile, 'signin')
+export function getValidAccessToken(profile, client) {
+  return getValidToken(profile, 'signin', client)
 }
 
 // Separate Google Health token (googlehealth.* scopes only).
-export function getValidHealthAccessToken(profile) {
-  return getValidToken(profile, 'health')
+export function getValidHealthAccessToken(profile, client) {
+  return getValidToken(profile, 'health', client)
 }

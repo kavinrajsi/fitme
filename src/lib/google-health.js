@@ -174,3 +174,57 @@ export async function getDailySteps(token, days = 90) {
     max,
   }
 }
+
+/**
+ * All daily metrics for the last `days` days, one object per day with data.
+ * Verified field shapes (rollupDataPoints[].<dataType>.<aggregate>):
+ *   steps    → steps.countSum
+ *   calories → activeEnergyBurned.kcalSum (active kcal)
+ *   distance → distance.millimetersSum (mm → km)
+ *   heart    → heartRate.beatsPerMinuteMin (used as a resting-HR proxy; no
+ *              dedicated resting-heart-rate data type exists)
+ * Sleep requires the googlehealth.sleep.readonly scope and is left null until the
+ * user reconnects with it (and the shape is verified).
+ */
+export async function getDailyMetrics(token, days = 90) {
+  const start = isoDate(-(days - 1))
+  const end = isoDate(1)
+
+  const [stepsD, calD, distD, hrD] = await Promise.all([
+    dailyRollUp(token, 'steps', start, end),
+    dailyRollUp(token, 'active-energy-burned', start, end),
+    dailyRollUp(token, 'distance', start, end),
+    dailyRollUp(token, 'heart-rate', start, end),
+  ])
+
+  const byDate = {}
+  const row = (k) =>
+    (byDate[k] ??= {
+      date: k,
+      steps: 0,
+      calories: 0,
+      distance_km: 0,
+      sleep_min: null,
+      resting_hr: null,
+    })
+
+  for (const pt of stepsD?.rollupDataPoints ?? []) {
+    const k = pointDate(pt)
+    if (k) row(k).steps = Number(pt.steps?.countSum ?? 0)
+  }
+  for (const pt of calD?.rollupDataPoints ?? []) {
+    const k = pointDate(pt)
+    if (k) row(k).calories = Math.round(Number(pt.activeEnergyBurned?.kcalSum ?? 0))
+  }
+  for (const pt of distD?.rollupDataPoints ?? []) {
+    const k = pointDate(pt)
+    if (k) row(k).distance_km = Math.round((Number(pt.distance?.millimetersSum ?? 0) / 1e6) * 100) / 100
+  }
+  for (const pt of hrD?.rollupDataPoints ?? []) {
+    const k = pointDate(pt)
+    const min = pt.heartRate?.beatsPerMinuteMin
+    if (k && min != null) row(k).resting_hr = Math.round(min)
+  }
+
+  return Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date))
+}
