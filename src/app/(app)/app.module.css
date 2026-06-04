@@ -259,6 +259,159 @@
   letter-spacing: -0.01em;
 }
 
+/* ---- Block: section-cards / metric (dashboard-01) ---- */
+.section-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .section-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.1rem 1.15rem;
+  margin-bottom: 0;
+}
+
+.metric__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metric__label {
+  margin-right: auto;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.metric__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric__progress {
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--fill-strong);
+  overflow: hidden;
+}
+
+.metric__progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+}
+
+.metric__foot {
+  margin-top: auto;
+}
+
+.metric__foot-line {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.metric__foot-note {
+  margin-top: 0.1rem;
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+/* ---- Badge (shadcn outline) ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: 0.5px solid var(--separator-strong);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.badge--up {
+  color: var(--foreground);
+}
+
+.badge--down {
+  color: var(--text-3);
+}
+
+/* ---- Activity chart card ---- */
+.activity__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.activity__head .card__title {
+  margin-bottom: 0;
+}
+
+.activity__desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  padding: 0.2rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+
+.segmented__item {
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.segmented__item--active {
+  color: var(--foreground);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+}
+
+.bars__col {
+  flex: 1;
+  min-width: 0;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.85;
+}
+
 /* ---- Block: stats / stat ---- */
 .stats {
   display: grid;

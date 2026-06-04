@@ -10,7 +10,7 @@
  */
 import styles from './signin.module.css'
 
-export const metadata = { title: 'Sign in' }
+export const metadata = { title: 'Sign in — KyaReFitting' }
 
 const ERROR_MESSAGES = {
   google_oauth_failed: 'Could not connect to Google. Please try again.',
@@ -23,23 +23,29 @@ export default async function SignInPage({ searchParams }) {
 
   return (
     <main className={styles.signin}>
-      <div className={styles['signin__card']}>
-        <h1 className={styles['signin__title']}>Welcome back</h1>
-        <p className={styles['signin__subtitle']}>Sign in to continue to your account</p>
-
-        {error && (
-          <div className={styles['signin__error']} role="alert">
-            {ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.'}
+      <div className={styles['signin__container']}>
+        <div className={styles['signin__card']}>
+          <div className={styles['signin__header']}>
+            <h1 className={styles['signin__title']}>Welcome back</h1>
+            <p className={styles['signin__description']}>Login with your Google account</p>
           </div>
-        )}
 
-        <a className={styles['signin__button']} href="/auth/google">
-          <GoogleIcon />
-          Continue with Google
-        </a>
+          <div className={styles['signin__content']}>
+            {error && (
+              <div className={styles['signin__error']} role="alert">
+                {ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.'}
+              </div>
+            )}
+
+            <a className={styles['signin__button']} href="/auth/google">
+              <GoogleIcon />
+              Login with Google
+            </a>
+          </div>
+        </div>
 
         <p className={styles['signin__legal']}>
-          By continuing, you agree to our <a href="/terms">Terms of Service</a> and{' '}
+          By clicking continue, you agree to our <a href="/terms">Terms of Service</a> and{' '}
           <a href="/privacy">Privacy Policy</a>.
         </p>
       </div>
