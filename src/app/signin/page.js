@@ -22,23 +22,23 @@ export default async function SignInPage({ searchParams }) {
   const { error } = await searchParams
 
   return (
-    <main className={styles.page}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Welcome back</h1>
-        <p className={styles.subtitle}>Sign in to continue to your account</p>
+    <main className={styles.signin}>
+      <div className={styles['signin__card']}>
+        <h1 className={styles['signin__title']}>Welcome back</h1>
+        <p className={styles['signin__subtitle']}>Sign in to continue to your account</p>
 
         {error && (
-          <div className={styles.error} role="alert">
+          <div className={styles['signin__error']} role="alert">
             {ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.'}
           </div>
         )}
 
-        <a className={styles.button} href="/auth/google">
+        <a className={styles['signin__button']} href="/auth/google">
           <GoogleIcon />
           Continue with Google
         </a>
 
-        <p className={styles.legal}>
+        <p className={styles['signin__legal']}>
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>

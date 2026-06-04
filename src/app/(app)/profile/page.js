@@ -34,20 +34,20 @@ export default async function ProfilePage({ searchParams }) {
       <div className={styles.user}>
         {d?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles.avatar} src={d.avatar} alt="" width={56} height={56} />
+          <img className={styles['user__avatar']} src={d.avatar} alt="" width={56} height={56} />
         ) : (
-          <div className={styles.avatarFallback} aria-hidden="true">
+          <div className={styles['user__avatar--fallback']} aria-hidden="true">
             {initial}
           </div>
         )}
         <div>
-          <h1 className={styles.userName}>{name}</h1>
-          {d?.email && <p className={styles.userEmail}>{d.email}</p>}
+          <h1 className={styles['user__name']}>{name}</h1>
+          {d?.email && <p className={styles['user__email']}>{d.email}</p>}
         </div>
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Details</h2>
+        <h2 className={styles['card__title']}>Details</h2>
         <Detail label="Height" value={d?.heightCm != null ? `${d.heightCm} cm` : null} />
         <Detail label="Weight" value={d?.weightKg != null ? `${d.weightKg} kg` : null} />
         <Detail label="BMI" value={d?.bmi != null ? `${d.bmi} (${d.bmiCategory})` : null} />
@@ -57,24 +57,27 @@ export default async function ProfilePage({ searchParams }) {
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Google Health</h2>
+        <h2 className={styles['card__title']}>Google Health</h2>
         {health === 'connected' && <p className={styles.hint}>Google Health connected.</p>}
         {health === 'connect_failed' && (
           <p className={styles.hint}>Couldn&apos;t connect Google Health — please try again.</p>
         )}
-        <a href="/auth/google/health" className={`${styles.button} ${styles.fullWidth}`}>
+        <a
+          href="/auth/google/health"
+          className={`${styles.button} ${styles['button--full']}`}
+        >
           {d?.healthConnected ? 'Reconnect Google Health' : 'Connect Google Health'}
         </a>
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Daily step goal</h2>
+        <h2 className={styles['card__title']}>Daily step goal</h2>
         <form action={saveStepGoal} className={styles.form}>
-          <div className={styles.fields}>
-            <label className={styles.field}>
+          <div className={styles['form__fields']}>
+            <label className={styles['form__field']}>
               <span>Goal (steps/day)</span>
               <input
-                className={styles.input}
+                className={styles['form__input']}
                 type="number"
                 name="daily_step_goal"
                 step="500"
@@ -84,14 +87,17 @@ export default async function ProfilePage({ searchParams }) {
               />
             </label>
           </div>
-          <button type="submit" className={`${styles.button} ${styles.primary} ${styles.fullWidth}`}>
+          <button
+            type="submit"
+            className={`${styles.button} ${styles['button--primary']} ${styles['button--full']}`}
+          >
             Save goal
           </button>
         </form>
       </div>
 
       <form action={signOut}>
-        <button type="submit" className={`${styles.button} ${styles.fullWidth}`}>
+        <button type="submit" className={`${styles.button} ${styles['button--full']}`}>
           Sign out
         </button>
       </form>
@@ -101,9 +107,9 @@ export default async function ProfilePage({ searchParams }) {
 
 function Detail({ label, value }) {
   return (
-    <div className={styles.detailRow}>
-      <span className={styles.detailLabel}>{label}</span>
-      <span className={styles.detailValue}>{value ?? '—'}</span>
+    <div className={styles.detail}>
+      <span className={styles['detail__label']}>{label}</span>
+      <span className={styles['detail__value']}>{value ?? '—'}</span>
     </div>
   )
 }

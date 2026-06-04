@@ -37,59 +37,63 @@ export default async function DashboardPage() {
       <div className={styles.user}>
         {d?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles.avatar} src={d.avatar} alt="" width={56} height={56} />
+          <img className={styles['user__avatar']} src={d.avatar} alt="" width={56} height={56} />
         ) : (
-          <div className={styles.avatarFallback} aria-hidden="true">
+          <div className={styles['user__avatar--fallback']} aria-hidden="true">
             {initial}
           </div>
         )}
         <div>
-          <h1 className={styles.userName}>Hi, {name}</h1>
-          {d?.email && <p className={styles.userEmail}>{d.email}</p>}
+          <h1 className={styles['user__name']}>Hi, {name}</h1>
+          {d?.email && <p className={styles['user__email']}>{d.email}</p>}
         </div>
       </div>
 
-      <div className={`${styles.card} ${styles.goalCard}`}>
-        <div className={styles.ringWrap}>
-          <svg viewBox="0 0 120 120" className={styles.ring} aria-hidden="true">
-            <circle cx="60" cy="60" r={R} className={styles.ringTrack} />
+      <div className={`${styles.card} ${styles['goal-card']}`}>
+        <div className={styles.ring}>
+          <svg viewBox="0 0 120 120" className={styles['ring__svg']} aria-hidden="true">
+            <circle cx="60" cy="60" r={R} className={styles['ring__track']} />
             <circle
               cx="60"
               cy="60"
               r={R}
-              className={styles.ringFill}
+              className={styles['ring__fill']}
               transform="rotate(-90 60 60)"
               style={{ strokeDasharray: CIRC, strokeDashoffset: CIRC * (1 - game.pct) }}
             />
           </svg>
-          <div className={styles.ringText}>
-            <span className={styles.ringSteps}>{game.today.toLocaleString()}</span>
-            <span className={styles.ringGoal}>/ {goal.toLocaleString()}</span>
-            <span className={styles.ringPct}>{Math.round(game.pct * 100)}%</span>
+          <div className={styles['ring__text']}>
+            <span className={styles['ring__steps']}>{game.today.toLocaleString()}</span>
+            <span className={styles['ring__goal']}>/ {goal.toLocaleString()}</span>
+            <span className={styles['ring__pct']}>{Math.round(game.pct * 100)}%</span>
           </div>
         </div>
 
         <div className={styles.streak}>
-          <span className={styles.streakFlame} aria-hidden="true">🔥</span>
+          <span className={styles['streak__flame']} aria-hidden="true">🔥</span>
           <div>
-            <div className={styles.streakNum}>{game.currentStreak}-day streak</div>
-            <div className={styles.streakBest}>Best: {game.bestStreak} days</div>
-            <div className={styles.streakHint}>Goal: {goal.toLocaleString()} steps/day</div>
+            <div className={styles['streak__count']}>{game.currentStreak}-day streak</div>
+            <div className={styles['streak__best']}>Best: {game.bestStreak} days</div>
+            <div className={styles['streak__hint']}>Goal: {goal.toLocaleString()} steps/day</div>
           </div>
         </div>
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Achievements</h2>
-        <div className={styles.achGrid}>
+        <h2 className={styles['card__title']}>Achievements</h2>
+        <div className={styles.achievements}>
           {game.achievements.map((a) => (
             <div
               key={a.id}
-              className={a.earned ? `${styles.ach} ${styles.achEarned}` : `${styles.ach} ${styles.achLocked}`}
+              className={
+                a.earned
+                  ? `${styles.achievement} ${styles['achievement--earned']}`
+                  : `${styles.achievement} ${styles['achievement--locked']}`
+              }
               title={a.name}
             >
-              <span className={styles.achIcon}>{a.earned ? a.icon : '🔒'}</span>
-              <span className={styles.achName}>{a.name}</span>
+              <span className={styles['achievement__icon']}>{a.earned ? a.icon : '🔒'}</span>
+              <span className={styles['achievement__name']}>{a.name}</span>
             </div>
           ))}
         </div>
@@ -102,7 +106,10 @@ export default async function DashboardPage() {
       </div>
 
       {!d?.healthConnected && (
-        <a href="/auth/google/health" className={`${styles.button} ${styles.primary} ${styles.fullWidth}`}>
+        <a
+          href="/auth/google/health"
+          className={`${styles.button} ${styles['button--primary']} ${styles['button--full']}`}
+        >
           Connect Google Health
         </a>
       )}
@@ -113,8 +120,8 @@ export default async function DashboardPage() {
 function Stat({ label, value }) {
   return (
     <div className={styles.stat}>
-      <span className={styles.statValue}>{value}</span>
-      <span className={styles.statLabel}>{label}</span>
+      <span className={styles['stat__value']}>{value}</span>
+      <span className={styles['stat__label']}>{label}</span>
     </div>
   )
 }

@@ -1,73 +1,77 @@
-.page {
+.signin {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 1.5rem;
   background: var(--background);
 }
 
-.card {
+.signin__card {
   width: 100%;
-  max-width: 400px;
-  padding: 2.5rem 2rem;
-  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--foreground) 3%, var(--background));
-  box-shadow: 0 4px 24px color-mix(in srgb, var(--foreground) 6%, transparent);
+  max-width: 380px;
+  padding: 3rem 2rem 2.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
   text-align: center;
 }
 
-.title {
+.signin__title {
   margin: 0 0 0.5rem;
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.signin__subtitle {
+  margin: 0 0 2.25rem;
+  font-size: 0.9375rem;
+  color: var(--text-2);
   letter-spacing: -0.01em;
 }
 
-.subtitle {
-  margin: 0 0 2rem;
-  font-size: 0.9rem;
-  color: color-mix(in srgb, var(--foreground) 60%, transparent);
-}
-
-.error {
-  margin: 0 0 1.25rem;
+.signin__error {
+  margin: 0 0 1.5rem;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background: color-mix(in srgb, #dc2626 12%, transparent);
-  border: 1px solid color-mix(in srgb, #dc2626 35%, transparent);
-  color: #dc2626;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #c4302b 9%, transparent);
+  color: #c4302b;
   font-size: 0.85rem;
   text-align: left;
 }
 
-.button {
+.signin__button {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
   width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--foreground);
-  background: var(--background);
-  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
-  border-radius: 10px;
+  background: var(--surface);
+  border: 0.5px solid var(--separator-strong);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.button:hover {
-  background: color-mix(in srgb, var(--foreground) 6%, var(--background));
-  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+.signin__button:hover {
+  background: var(--surface-2);
 }
 
-.legal {
-  margin: 1.5rem 0 0;
+.signin__button:active {
+  transform: scale(0.98);
+}
+
+.signin__legal {
+  margin: 1.75rem 0 0;
   font-size: 0.75rem;
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  line-height: 1.55;
+  color: var(--text-3);
 }

@@ -25,12 +25,12 @@ export default async function AppLayout({ children }) {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.topbar}>
-        <span className={styles.brand}>KyaReFitting aa</span>
+      <header className={styles['shell__topbar']}>
+        <span className={styles['shell__brand']}>KyaReFitting aa</span>
         {healthConnected && <SyncButton />}
       </header>
 
-      <main className={styles.main}>{children}</main>
+      <main className={styles['shell__main']}>{children}</main>
 
       <BottomNav />
     </div>

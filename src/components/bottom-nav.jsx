@@ -26,10 +26,12 @@ export function BottomNav() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={active ? `${styles.tab} ${styles.active}` : styles.tab}
+            className={
+              active ? `${styles['nav__tab']} ${styles['nav__tab--active']}` : styles['nav__tab']
+            }
           >
             <Icon />
-            <span className={styles.label}>{label}</span>
+            <span className={styles['nav__label']}>{label}</span>
           </Link>
         )
       })}

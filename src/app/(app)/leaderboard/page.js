@@ -58,15 +58,19 @@ export default async function LeaderboardPage({ searchParams }) {
 
   return (
     <>
-      <h1 className={styles.pageTitle}>Leaderboard</h1>
-      <p className={styles.pageSub}>Steps · {period.label}</p>
+      <h1 className={styles['page__title']}>Leaderboard</h1>
+      <p className={styles['page__subtitle']}>Steps · {period.label}</p>
 
-      <div className={styles.tabs}>
+      <div className={styles['leaderboard__tabs']}>
         {PERIODS.map((p) => (
           <a
             key={p.key}
             href={`/leaderboard?period=${p.key}`}
-            className={p.key === period.key ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+            className={
+              p.key === period.key
+                ? `${styles['leaderboard__tab']} ${styles['leaderboard__tab--active']}`
+                : styles['leaderboard__tab']
+            }
           >
             {p.label}
           </a>
@@ -77,26 +81,36 @@ export default async function LeaderboardPage({ searchParams }) {
         <p className={styles.note}>No steps on the leaderboard yet — sync to get on the board.</p>
       ) : (
         <div className={styles.card}>
-          <ul className={styles.rows}>
+          <ul className={styles['leaderboard__list']}>
             {shown.map((r) => (
               <li
                 key={r.id}
-                className={r.id === user.id ? `${styles.lbRow} ${styles.lbMe}` : styles.lbRow}
+                className={
+                  r.id === user.id
+                    ? `${styles['leaderboard__row']} ${styles['leaderboard__row--me']}`
+                    : styles['leaderboard__row']
+                }
               >
-                <span className={styles.lbRank}>{r.rank}</span>
+                <span className={styles['leaderboard__rank']}>{r.rank}</span>
                 {r.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className={styles.lbAvatar} src={r.avatar} alt="" width={32} height={32} />
+                  <img
+                    className={styles['leaderboard__avatar']}
+                    src={r.avatar}
+                    alt=""
+                    width={32}
+                    height={32}
+                  />
                 ) : (
-                  <span className={styles.lbAvatarFallback} aria-hidden="true">
+                  <span className={styles['leaderboard__avatar--fallback']} aria-hidden="true">
                     {(r.name?.[0] ?? '?').toUpperCase()}
                   </span>
                 )}
-                <span className={styles.lbName}>
+                <span className={styles['leaderboard__name']}>
                   {r.name}
-                  {r.id === user.id && <span className={styles.lbYou}> (you)</span>}
+                  {r.id === user.id && <span className={styles['leaderboard__you']}> (you)</span>}
                 </span>
-                <span className={styles.lbSteps}>{r.steps.toLocaleString()}</span>
+                <span className={styles['leaderboard__steps']}>{r.steps.toLocaleString()}</span>
               </li>
             ))}
           </ul>

@@ -36,8 +36,8 @@ export default async function DataPage() {
 
   return (
     <>
-      <h1 className={styles.pageTitle}>Steps</h1>
-      <p className={styles.pageSub}>Last {DAYS} days · Google Health</p>
+      <h1 className={styles['page__title']}>Steps</h1>
+      <p className={styles['page__subtitle']}>Last {DAYS} days · Google Health</p>
 
       {days.length === 0 ? (
         <div className={styles.prompt}>
@@ -47,7 +47,10 @@ export default async function DataPage() {
               : 'Connect Google Health to start syncing your steps.'}
           </p>
           {!connected && (
-            <a href="/auth/google/health" className={`${styles.button} ${styles.primary}`}>
+            <a
+              href="/auth/google/health"
+              className={`${styles.button} ${styles['button--primary']}`}
+            >
               Connect Google Health
             </a>
           )}
@@ -60,17 +63,17 @@ export default async function DataPage() {
           </div>
 
           <div className={styles.card}>
-            <ul className={styles.rows}>
+            <ul className={styles.chart}>
               {days.map((r) => (
-                <li key={r.date} className={styles.row}>
-                  <span className={styles.rowDate}>{formatDate(r.date)}</span>
-                  <span className={styles.barTrack}>
+                <li key={r.date} className={styles['chart__row']}>
+                  <span className={styles['chart__date']}>{formatDate(r.date)}</span>
+                  <span className={styles['chart__track']}>
                     <span
-                      className={styles.bar}
+                      className={styles['chart__bar']}
                       style={{ width: max ? `${((r.steps ?? 0) / max) * 100}%` : '0%' }}
                     />
                   </span>
-                  <span className={styles.rowCount}>{(r.steps ?? 0).toLocaleString()}</span>
+                  <span className={styles['chart__count']}>{(r.steps ?? 0).toLocaleString()}</span>
                 </li>
               ))}
             </ul>
@@ -88,8 +91,8 @@ function formatDate(iso) {
 function Stat({ label, value }) {
   return (
     <div className={styles.stat}>
-      <span className={styles.statValue}>{value}</span>
-      <span className={styles.statLabel}>{label}</span>
+      <span className={styles['stat__value']}>{value}</span>
+      <span className={styles['stat__label']}>{label}</span>
     </div>
   )
 }

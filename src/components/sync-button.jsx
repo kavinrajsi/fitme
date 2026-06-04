@@ -54,47 +54,52 @@ export function SyncButton() {
 
   return (
     <>
-      <button className={styles.sync} onClick={runSync} disabled={running}>
+      <button className={styles['sync-button']} onClick={runSync} disabled={running}>
         {running ? 'Syncing…' : 'Sync'}
       </button>
 
       {open && (
-        <div className={styles.overlay} onClick={close}>
-          <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.panelHead}>
+        <div className={styles['sync-modal']} onClick={close}>
+          <div className={styles['sync-modal__panel']} onClick={(e) => e.stopPropagation()}>
+            <div className={styles['sync-modal__head']}>
               <strong>Sync Google Health</strong>
-              <button className={styles.close} onClick={close} disabled={running} aria-label="Close">
+              <button
+                className={styles['sync-modal__close']}
+                onClick={close}
+                disabled={running}
+                aria-label="Close"
+              >
                 ×
               </button>
             </div>
 
-            <ul className={styles.steps}>
+            <ul className={styles['sync-modal__steps']}>
               {steps.map((s, i) => {
                 const isLast = i === steps.length - 1
                 const inProgress = running && isLast && !result && !error
                 return (
-                  <li key={i} className={styles.stepItem}>
-                    <span className={styles.stepMark}>{inProgress ? '⋯' : '✓'}</span>
+                  <li key={i} className={styles['sync-modal__step']}>
+                    <span className={styles['sync-modal__step-mark']}>{inProgress ? '⋯' : '✓'}</span>
                     {s}
                   </li>
                 )
               })}
             </ul>
 
-            {error && <p className={styles.err}>{error}</p>}
+            {error && <p className={styles['sync-modal__error']}>{error}</p>}
 
             {result && (
-              <div className={styles.summary}>
-                <p className={styles.summaryLine}>
+              <div className={styles['sync-modal__summary']}>
+                <p className={styles['sync-modal__summary-line']}>
                   Synced <strong>{result.summary.days}</strong> days ·{' '}
                   {result.summary.withSteps} with steps
                 </p>
-                <p className={styles.summaryLine}>
+                <p className={styles['sync-modal__summary-line']}>
                   <strong>{result.summary.totalSteps.toLocaleString()}</strong> total steps ·{' '}
                   {result.summary.avgSteps.toLocaleString()}/day avg
                 </p>
 
-                <table className={styles.table}>
+                <table className={styles['sync-modal__table']}>
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -115,7 +120,11 @@ export function SyncButton() {
                   </tbody>
                 </table>
 
-                <a href="/data" className={styles.viewLink} onClick={() => setOpen(false)}>
+                <a
+                  href="/data"
+                  className={styles['sync-modal__view-link']}
+                  onClick={() => setOpen(false)}
+                >
                   View all steps →
                 </a>
               </div>
