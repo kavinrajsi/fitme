@@ -11,6 +11,7 @@ import styles from './nav-links.module.css'
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/data', label: 'Data' },
+  { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/profile', label: 'Profile' },
 ]
 

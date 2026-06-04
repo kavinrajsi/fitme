@@ -219,6 +219,73 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Leaderboard */
+.lbRow {
+  display: grid;
+  grid-template-columns: 1.75rem 32px 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.lbRow:last-child {
+  border-bottom: none;
+}
+
+.lbMe {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  border-radius: 8px;
+}
+
+.lbRank {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.lbAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.lbAvatarFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--background);
+  background: var(--foreground);
+}
+
+.lbName {
+  font-size: 0.9rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lbYou {
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  font-weight: 400;
+}
+
+.lbSteps {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Manual entry form */
 .form {
   margin-top: 0.5rem;

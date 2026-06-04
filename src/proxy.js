@@ -48,7 +48,7 @@ export async function proxy(request) {
   }
 
   // Protect the authenticated pages for signed-out users.
-  const protectedPaths = ['/dashboard', '/data', '/profile']
+  const protectedPaths = ['/dashboard', '/data', '/leaderboard', '/profile']
   if (!user && protectedPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/signin', request.url))
   }
