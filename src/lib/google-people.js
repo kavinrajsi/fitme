@@ -14,8 +14,11 @@ export async function getPeopleDetails(token) {
   if (!res.ok) return { birthday: null, gender: null }
   const data = await res.json()
 
-  // Prefer an entry with a concrete date; date = { year?, month, day }.
-  const bEntry = (data.birthdays || []).find((b) => b.date) || (data.birthdays || [])[0]
+  // Google often returns two birthdays: a PROFILE entry without a year and an
+  // ACCOUNT entry with the full date. Prefer the one that actually has a year,
+  // then any entry with a date. date = { year?, month, day }.
+  const bdays = data.birthdays || []
+  const bEntry = bdays.find((b) => b.date?.year) || bdays.find((b) => b.date) || bdays[0]
   const d = bEntry?.date
   const birthday =
     d && d.month && d.day
