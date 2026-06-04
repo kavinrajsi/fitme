@@ -3,6 +3,7 @@
  * height/weight entry, and Connect Google Health.
  */
 import { getUserDetails } from '@/lib/get-user-details'
+import { signOut } from '../../actions/auth'
 import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -53,6 +54,11 @@ export default async function ProfilePage({ searchParams }) {
         </a>
       </div>
 
+      <form action={signOut}>
+        <button type="submit" className={`${styles.button} ${styles.fullWidth}`}>
+          Sign out
+        </button>
+      </form>
     </>
   )
 }

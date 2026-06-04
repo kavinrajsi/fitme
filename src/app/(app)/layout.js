@@ -1,13 +1,12 @@
 /**
- * Authenticated dashboard shell — wraps /dashboard, /data, /profile with a shared
- * top nav (Dashboard / Data / Profile) and sign-out. Redirects to /signin when the
- * visitor isn't authenticated (the proxy also guards these paths).
+ * Mobile-app shell for the authenticated area: a slim sticky top bar (brand + Sync),
+ * a scrollable content column, and a fixed bottom tab bar. Sign out lives on the
+ * Profile screen (mobile convention). Redirects to /signin when not authenticated.
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { NavLinks } from '@/components/nav-links'
+import { BottomNav } from '@/components/bottom-nav'
 import { SyncButton } from '@/components/sync-button'
-import { signOut } from '../actions/auth'
 import styles from './app.module.css'
 
 export default async function AppLayout({ children }) {
@@ -26,19 +25,14 @@ export default async function AppLayout({ children }) {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.header}>
+      <header className={styles.topbar}>
         <span className={styles.brand}>KyaReFitting aa</span>
-        <NavLinks />
-        <div className={styles.headerActions}>
-          {healthConnected && <SyncButton />}
-          <form action={signOut}>
-            <button type="submit" className={styles.signout}>
-              Sign out
-            </button>
-          </form>
-        </div>
+        {healthConnected && <SyncButton />}
       </header>
+
       <main className={styles.main}>{children}</main>
+
+      <BottomNav />
     </div>
   )
 }
