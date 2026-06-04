@@ -25,16 +25,16 @@ export default function PrivacyPage() {
             <li>Your Google profile photo URL</li>
             <li>
               A Google OAuth access token and refresh token, used to read your
-              Google Fit data on your behalf
+              Google Health data on your behalf
             </li>
           </ul>
-          <p className="mt-3">From Google Fit we read and <strong>store in our database</strong>:</p>
+          <p className="mt-3">From Google Health we read and <strong>store in our database</strong>:</p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
             <li>Daily step count (up to 7 days of history)</li>
             <li>Calories burned (today only)</li>
             <li>Body weight and height (stored on your profile)</li>
           </ul>
-          <p className="mt-3">From Google Fit we read <strong>but do not store</strong>:</p>
+          <p className="mt-3">From Google Health we read <strong>but do not store</strong>:</p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
             <li>Sleep duration (fetched live, shown on dashboard only)</li>
             <li>Active minutes and distance (fetched live, shown on dashboard only)</li>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
             <li>To authenticate you and maintain your session</li>
             <li>To display your fitness summary on the dashboard</li>
             <li>To calculate your ranking on the company step-count leaderboard</li>
-            <li>To refresh your Google Fit access when your token expires</li>
+            <li>To refresh your Google Health access when your token expires</li>
           </ul>
           <p className="mt-3">
             We do not sell, rent, or share your data with third parties for
@@ -69,7 +69,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
             <li>
-              We only request the Google Fit scopes necessary to show your
+              We only request the Google Health scopes necessary to show your
               fitness summary
             </li>
             <li>We do not use your Google data to serve ads</li>

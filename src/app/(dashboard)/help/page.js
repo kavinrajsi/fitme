@@ -53,26 +53,26 @@ export default function HelpPage() {
 
         <Section icon="rocket_launch" title="Getting started">
           <p>
-            KyaReFitting aa connects to your Google Fit account to automatically sync your daily activity.
+            KyaReFitting aa connects to your Google Health account to automatically sync your daily activity.
             Here&apos;s how to get set up:
           </p>
           <ol className="list-decimal pl-5 space-y-1.5">
             <li>Sign in with your Google account on the sign-in page.</li>
-            <li>Grant KyaReFitting aa access to your Google Fit data when prompted — you&apos;ll see a list of permissions requested.</li>
+            <li>Grant KyaReFitting aa access to your Google Health data when prompted — you&apos;ll see a list of permissions requested.</li>
             <li>You&apos;ll be taken to your Dashboard where your steps, calories, and other metrics will load automatically.</li>
             <li>Data syncs each time you visit the Dashboard, so your stats are always up to date.</li>
           </ol>
           <p className="text-muted-foreground">
-            Make sure your Google Fit app is recording activity on your phone or connected wearable before signing in.
+            Make sure your Google Health app is recording activity on your phone or connected wearable before signing in.
           </p>
         </Section>
 
         <Section icon="dashboard" title="Dashboard">
           <p>The Dashboard is your daily fitness overview. Here&apos;s what each section shows:</p>
           <ul className="space-y-2.5">
-            <li><span className="font-medium">Steps today</span> — total steps recorded by Google Fit since midnight.</li>
-            <li><span className="font-medium">Calories burned</span> — active calories burned today according to Google Fit.</li>
-            <li><span className="font-medium">Weight / Height</span> — your body metrics synced from Google Fit. Update these in your fitness app to keep them current.</li>
+            <li><span className="font-medium">Steps today</span> — total steps recorded by Google Health since midnight.</li>
+            <li><span className="font-medium">Calories burned</span> — active calories burned today according to Google Health.</li>
+            <li><span className="font-medium">Weight / Height</span> — your body metrics synced from Google Health. Update these in your fitness app to keep them current.</li>
             <li><span className="font-medium">Daily goal bar</span> — shows your progress toward the 10,000-step daily target.</li>
             <li><span className="font-medium">Your streak</span> — a 7-day calendar showing which days you were active. See the Streak section below for details.</li>
             <li><span className="font-medium">Steps — last 7 days</span> — a bar chart of your daily step counts over the past week.</li>
@@ -98,7 +98,7 @@ export default function HelpPage() {
         <Section icon="warning" title="Edge case — why your streak won't break mid-day">
           <p>
             Imagine you had a 5-day streak going. It&apos;s 7am on Day 6 — you haven&apos;t walked yet.
-            Your Google Fit data for today shows 0 steps.
+            Your Google Health data for today shows 0 steps.
           </p>
 
           <div>
@@ -207,7 +207,7 @@ Yesterday → 0 steps ✗ → stop
         <Section icon="help" title="Frequently asked questions">
           <div className="space-y-5">
             <Q q="Why is my data not showing on the Dashboard?">
-              Your Google Fit token may have expired. You&apos;ll see a &quot;Reconnect Google Fit&quot; banner — tap it to re-authenticate. If you just signed in for the first time, make sure Google Fit has recorded some activity on your device.
+              Your Google Health token may have expired. You&apos;ll see a &quot;Reconnect Google Health&quot; banner — tap it to re-authenticate. If you just signed in for the first time, make sure Google Health has recorded some activity on your device.
             </Q>
             <Q q="Why is my streak showing 0?">
               Your streak resets if you miss a day (fewer than 8,000 steps). It also shows 0 if you haven&apos;t synced recently. Visit the Dashboard to trigger a sync and update your streak.
@@ -225,7 +225,7 @@ Yesterday → 0 steps ✗ → stop
               The arrow shows — when there is no data from the previous period to compare against. This is common on the first day of a new month or when you have no data from the previous period.
             </Q>
             <Q q="How do I update my weight or height?">
-              Update these values in your Google Fit or Google Health app on your phone. KyaReFitting aa reads them automatically on the next Dashboard sync.
+              Update these values in your Google Health app on your phone. KyaReFitting aa reads them automatically on the next Dashboard sync.
             </Q>
             <Q q="How do I revoke KyaReFitting aa's access to my Google account?">
               Go to{' '}

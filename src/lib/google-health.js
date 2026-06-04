@@ -1,5 +1,5 @@
 /**
- * Google Health API client — replaces google-fit.js.
+ * Google Health API client — the sole health data source.
  *
  * Base URL: https://health.googleapis.com/v4/users/me/dataTypes
  * Auth:     Bearer token from Google OAuth (googlehealth.* scopes)
