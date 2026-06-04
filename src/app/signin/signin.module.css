@@ -75,3 +75,8 @@
   line-height: 1.55;
   color: var(--text-3);
 }
+
+.signin__legal a {
+  color: var(--text-2);
+  text-decoration: underline;
+}

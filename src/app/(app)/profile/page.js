@@ -101,6 +101,12 @@ export default async function ProfilePage({ searchParams }) {
           Sign out
         </button>
       </form>
+
+      <nav className={styles.links}>
+        <a href="/help">Help</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </nav>
     </>
   )
 }

@@ -11,6 +11,26 @@
   background: var(--background);
 }
 
+/* Desktop: left sidebar + wider centered content; hide the mobile chrome. */
+@media (min-width: 1024px) {
+  .shell {
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .shell__topbar {
+    display: none;
+  }
+
+  .shell__main {
+    max-width: 780px;
+    margin-inline: auto;
+    padding: 2.75rem 2.5rem 3rem;
+  }
+}
+
 .shell__topbar {
   position: sticky;
   top: 0;
@@ -115,19 +135,19 @@
 .goal-card {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: clamp(1rem, 4vw, 1.5rem);
 }
 
 .ring {
   position: relative;
-  width: 128px;
-  height: 128px;
+  width: clamp(104px, 30vw, 128px);
+  height: clamp(104px, 30vw, 128px);
   flex-shrink: 0;
 }
 
 .ring__svg {
-  width: 128px;
-  height: 128px;
+  width: 100%;
+  height: 100%;
 }
 
 .ring__track {
@@ -431,6 +451,26 @@
 .prompt {
   text-align: center;
   padding: 0.5rem 0 1.25rem;
+}
+
+/* ---- Block: links (in-app footer) ---- */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  font-size: 0.8125rem;
+}
+
+.links a {
+  color: var(--text-3);
+  text-decoration: none;
+}
+
+.links a:hover {
+  color: var(--foreground);
+  text-decoration: underline;
 }
 
 /* ---- Block: leaderboard ---- */

@@ -32,25 +32,61 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 1rem;
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   background: color-mix(in srgb, #000 40%, transparent);
   backdrop-filter: blur(2px);
+  animation: fade 0.2s ease;
 }
 
-@media (min-width: 480px) {
-  .sync-modal {
-    align-items: center;
+@keyframes fade {
+  from {
+    opacity: 0;
   }
 }
 
+/* Mobile: bottom sheet with a grab handle. */
 .sync-modal__panel {
   width: 100%;
-  max-width: 440px;
-  padding: 1.5rem;
-  border-radius: var(--radius-lg);
+  max-width: 480px;
+  padding: 0.75rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: var(--surface);
   box-shadow: var(--shadow-lg);
+  animation: sheet 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sync-modal__panel::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--separator-strong);
+}
+
+@keyframes sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* Desktop: centered dialog, no handle. */
+@media (min-width: 480px) {
+  .sync-modal {
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .sync-modal__panel {
+    max-width: 440px;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    animation: none;
+  }
+
+  .sync-modal__panel::before {
+    display: none;
+  }
 }
 
 .sync-modal__head {

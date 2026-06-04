@@ -39,7 +39,8 @@ export default async function SignInPage({ searchParams }) {
         </a>
 
         <p className={styles['signin__legal']}>
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          By continuing, you agree to our <a href="/terms">Terms of Service</a> and{' '}
+          <a href="/privacy">Privacy Policy</a>.
         </p>
       </div>
     </main>
