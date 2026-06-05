@@ -23,8 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-
-const ADMIN_EMAIL = 'sikavinraj@gmail.com'
+import { ADMIN_EMAIL } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 

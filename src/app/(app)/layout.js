@@ -4,6 +4,7 @@
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { ADMIN_EMAIL } from '@/lib/constants'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SyncButton } from '@/components/sync-button'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
@@ -36,7 +37,7 @@ export default async function AppLayout({ children }) {
     <SidebarProvider>
       <AppSidebar
         user={sidebarUser}
-        isAdmin={user.email === 'sikavinraj@gmail.com'}
+        isAdmin={user.email === ADMIN_EMAIL}
         variant="inset"
       />
       <SidebarInset>

@@ -30,19 +30,18 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { dkey } from '@/lib/date-utils'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata = { title: 'Dashboard — KyaReFitting' }
 
-const IST = 5.5 * 3600 * 1000
 const RANGES = [
   { key: '7d', label: '7D', days: 7 },
   { key: '30d', label: '30D', days: 30 },
   { key: '90d', label: '90D', days: 90 },
 ]
 
-const dkey = (daysAgo) => new Date(Date.now() + IST - daysAgo * 86400000).toISOString().slice(0, 10)
 const pct = (current, previous) =>
   previous > 0 ? Math.round(((current - previous) / previous) * 100) : current > 0 ? 100 : 0
 
@@ -316,7 +315,7 @@ function Metric({ label, value, trend, icon, progress, foot, note }) {
           </div>
         </CardContent>
       )}
-      <CardFooter className="flex-col items-start gap-0.5 text-sm">
+      <CardFooter className="mt-auto flex-col items-start gap-0.5 text-sm">
         <span className="font-medium">{foot}</span>
         <span className="text-muted-foreground text-xs">{note}</span>
       </CardFooter>

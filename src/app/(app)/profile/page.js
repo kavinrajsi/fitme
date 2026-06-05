@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata = { title: 'Profile — KyaReFitting aa' }
+export const metadata = { title: 'Profile — KyaReFitting' }
 
 export default async function ProfilePage({ searchParams }) {
   const { health } = await searchParams

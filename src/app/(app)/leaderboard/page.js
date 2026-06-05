@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata = { title: 'Leaderboard — KyaReFitting aa' }
+export const metadata = { title: 'Leaderboard — KyaReFitting' }
 
 const PERIODS = [
   { key: 'today', label: 'Today', days: 1 },

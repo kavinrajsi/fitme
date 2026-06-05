@@ -11,27 +11,9 @@
  * Units: weight in grams → kg; height in millimetres → cm.
  */
 
+import { IST_OFFSET_MS, isoDate, civil, addDays, civilKey } from '@/lib/date-utils'
+
 const HEALTH_API = 'https://health.googleapis.com/v4/users/me/dataTypes'
-
-// Server runs UTC; shift by the IST offset so the date components reflect the
-// IST calendar date the readings were recorded against.
-const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
-
-function isoDate(offsetDays = 0) {
-  const ist = new Date(Date.now() + IST_OFFSET_MS)
-  if (offsetDays) ist.setUTCDate(ist.getUTCDate() + offsetDays)
-  return ist.toISOString().slice(0, 10)
-}
-
-// The dailyRollUp range uses CivilDateTime objects ({ date:{year,month,day},
-// time:{hours,...} }) — NOT RFC3339 strings — for its closed-open interval.
-function civil(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  return {
-    date: { year, month, day },
-    time: { hours: 0, minutes: 0, seconds: 0, nanos: 0 },
-  }
-}
 
 async function dailyRollUp(token, dataType, startDate, endDate) {
   const response = await fetch(`${HEALTH_API}/${dataType}/dataPoints:dailyRollUp`, {
@@ -45,12 +27,6 @@ async function dailyRollUp(token, dataType, startDate, endDate) {
   })
   if (!response.ok) return null
   return response.json()
-}
-
-function addDays(dateStr, n) {
-  const date = new Date(dateStr + 'T00:00:00Z')
-  date.setUTCDate(date.getUTCDate() + n)
-  return date.toISOString().slice(0, 10)
 }
 
 // Some rollups cap the query window (e.g. heart-rate / total-calories at 14 days).
@@ -325,11 +301,6 @@ export async function getDailyMetrics(token, days = 90) {
       spo2: null,
       hrv_ms: null,
     })
-
-  const civilKey = (date) =>
-    date?.year && Number(date.year) >= 2000
-      ? `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-      : null
 
   for (const point of stepsD?.rollupDataPoints ?? []) {
     const dateKey = pointDate(point)

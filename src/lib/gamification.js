@@ -5,16 +5,7 @@
  * `rows` is an array of { date: 'YYYY-MM-DD', steps } (IST civil dates, any order).
  */
 
-const DAY_MS = 86400000
-const IST_MS = 5.5 * 3600 * 1000
-
-function istToday() {
-  return new Date(Date.now() + IST_MS).toISOString().slice(0, 10)
-}
-
-function addDay(dateKey, offsetDays = 1) {
-  return new Date(new Date(dateKey + 'T00:00:00Z').getTime() + offsetDays * DAY_MS).toISOString().slice(0, 10)
-}
+import { dkey, addDays } from '@/lib/date-utils'
 
 const ACHIEVEMENTS = [
   { id: 'first', name: 'First Steps', icon: '👟', test: (stats) => stats.total > 0 },
@@ -32,7 +23,7 @@ export function computeGamification(rows, goal = 10000) {
   const byDate = {}
   for (const row of rows ?? []) byDate[row.date] = row.steps ?? 0
 
-  const todayKey = istToday()
+  const todayKey = dkey(0)
   const today = byDate[todayKey] ?? 0
   const pct = goal ? Math.min(today / goal, 1) : 0
 
@@ -52,7 +43,7 @@ export function computeGamification(rows, goal = 10000) {
   let currentStreak = 0
   let startOffset = today >= goal ? 0 : 1
   for (let i = startOffset; ; i++) {
-    const dateKey = new Date(Date.now() + IST_MS - i * DAY_MS).toISOString().slice(0, 10)
+    const dateKey = dkey(i)
     if ((byDate[dateKey] ?? 0) >= goal) currentStreak++
     else break
   }
@@ -65,7 +56,7 @@ export function computeGamification(rows, goal = 10000) {
     let streakRun = 0
     const window = []
     let windowSum = 0
-    for (let dateKey = start; dateKey <= todayKey; dateKey = addDay(dateKey)) {
+    for (let dateKey = start; dateKey <= todayKey; dateKey = addDays(dateKey, 1)) {
       const steps = byDate[dateKey] ?? 0
       streakRun = steps >= goal ? streakRun + 1 : 0
       if (streakRun > bestStreak) bestStreak = streakRun

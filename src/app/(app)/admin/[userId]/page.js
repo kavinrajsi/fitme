@@ -24,8 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
-const ADMIN_EMAIL = 'sikavinraj@gmail.com'
+import { ADMIN_EMAIL } from '@/lib/constants'
+import { StepsAreaChart } from './steps-area-chart'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,6 +83,10 @@ export default async function AdminUserPage({ params }) {
 
   const dailyRows = metrics ?? []
   const totalSteps = dailyRows.reduce((sum, day) => sum + (day.steps ?? 0), 0)
+  // dailyRows are newest-first; the chart needs chronological order.
+  const stepsChartData = [...dailyRows]
+    .reverse()
+    .map((day) => ({ date: day.date, steps: day.steps ?? 0 }))
   const goal = profile.daily_step_goal ?? 10000
   const name = profile.full_name ?? 'Account'
   const initial = (name?.[0] ?? profile.email?.[0] ?? '?').toUpperCase()
@@ -153,6 +157,8 @@ export default async function AdminUserPage({ params }) {
           </dl>
         </CardContent>
       </Card>
+
+      <StepsAreaChart data={stepsChartData} />
 
       <Card>
         <CardHeader>

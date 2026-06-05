@@ -23,7 +23,7 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-export const metadata = { title: 'Steps data — KyaReFitting aa' }
+export const metadata = { title: 'Steps data — KyaReFitting' }
 
 const DAYS = 90
 
