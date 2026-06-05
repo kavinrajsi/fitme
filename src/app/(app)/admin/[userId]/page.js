@@ -61,7 +61,7 @@ export default async function AdminUserPage({ params }) {
   if (user?.email !== ADMIN_EMAIL) notFound()
 
   const service = createServiceClient()
-  const [{ data: profile }, { data: metrics }, { data: workouts }, { data: hourly }] =
+  const [{ data: profile }, { data: metrics }, { data: workouts }, { data: hourly }, { data: devices }] =
     await Promise.all([
       service
         .from('profiles')
@@ -88,6 +88,11 @@ export default async function AdminUserPage({ params }) {
         .eq('user_id', userId)
         .order('day', { ascending: false })
         .order('hour', { ascending: false }),
+      service
+        .from('push_subscriptions')
+        .select('endpoint, device, user_agent, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
     ])
 
   if (!profile) notFound()
@@ -166,6 +171,43 @@ export default async function AdminUserPage({ params }) {
               </div>
             ))}
           </dl>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Devices</CardTitle>
+          <CardDescription>{(devices ?? []).length} push subscription(s)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(devices ?? []).length === 0 ? (
+            <p className="text-muted-foreground text-sm">No notification devices.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Device</TableHead>
+                    <TableHead>User agent</TableHead>
+                    <TableHead>Subscribed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(devices ?? []).map((device) => (
+                    <TableRow key={device.endpoint}>
+                      <TableCell className="font-medium">{device.device ?? '—'}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[24rem] truncate text-xs">
+                        {device.user_agent ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                        {fmtDate(device.created_at)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
