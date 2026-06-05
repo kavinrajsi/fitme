@@ -6,6 +6,8 @@
  * /auth/google hits the Route Handler as a full document request.
  * Errors are surfaced via the `?error=` search param set by the callback route.
  */
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -17,6 +19,8 @@ import {
 import { FieldDescription } from '@/components/ui/field'
 import { cn } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = { title: 'Sign in — KyaReFitting' }
 
 const ERROR_MESSAGES = {
@@ -26,6 +30,13 @@ const ERROR_MESSAGES = {
 }
 
 export default async function SignInPage({ searchParams }) {
+  // Already signed in? Skip the login page and go straight in.
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user) redirect('/dashboard')
+
   const { error } = await searchParams
 
   return (

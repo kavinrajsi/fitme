@@ -42,9 +42,16 @@ export async function proxy(request) {
 
   const { pathname } = request.nextUrl
 
-  // Send signed-in users from the login page / root to the dashboard.
+  // Redirect while preserving any refreshed session cookies (Supabase SSR pattern).
+  const redirectTo = (path) => {
+    const redirectResponse = NextResponse.redirect(new URL(path, request.url))
+    supabaseResponse.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+    return redirectResponse
+  }
+
+  // Already signed in? Skip the login page / root and go to the dashboard.
   if (user && (pathname === '/signin' || pathname === '/')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return redirectTo('/dashboard')
   }
 
   // Protect the authenticated pages for signed-out users.
@@ -57,7 +64,7 @@ export async function proxy(request) {
     '/admin',
   ]
   if (!user && protectedPaths.some((p) => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL('/signin', request.url))
+    return redirectTo('/signin')
   }
 
   return supabaseResponse
