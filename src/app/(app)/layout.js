@@ -1,13 +1,13 @@
 /**
- * Mobile-app shell for the authenticated area: a slim sticky top bar (brand + Sync),
- * a scrollable content column, and a fixed bottom tab bar. Sign out lives on the
- * Profile screen (mobile convention). Redirects to /signin when not authenticated.
+ * Authenticated shell — shadcn sidebar layout (AppSidebar + SidebarInset) with a
+ * sticky header (sidebar trigger + Sync). Redirects to /signin when not signed in.
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { BottomNav } from '@/components/bottom-nav'
-import { Sidebar } from '@/components/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
 import { SyncButton } from '@/components/sync-button'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { Separator } from '@/components/ui/separator'
 
 export default async function AppLayout({ children }) {
   const supabase = await createClient()
@@ -23,18 +23,31 @@ export default async function AppLayout({ children }) {
     .maybeSingle()
   const healthConnected = !!profile?.google_health_refresh_token
 
+  const meta = user.user_metadata ?? {}
+  const name = meta.full_name ?? meta.name ?? 'Account'
+  const sidebarUser = {
+    name,
+    email: user.email,
+    avatar: meta.avatar_url ?? meta.picture ?? null,
+    initial: (name?.[0] ?? user.email?.[0] ?? '?').toUpperCase(),
+  }
+
   return (
-    <div>
-      <Sidebar healthConnected={healthConnected} />
-
-      <header>
-        <span>KyaReFitting</span>
-        {healthConnected && <SyncButton />}
-      </header>
-
-      <main>{children}</main>
-
-      <BottomNav />
-    </div>
+    <SidebarProvider>
+      <AppSidebar user={sidebarUser} variant="inset" />
+      <SidebarInset>
+        <header className="bg-background/80 sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-1 h-4" />
+          <span className="text-sm font-medium">KyaReFitting</span>
+          {healthConnected && (
+            <div className="ml-auto">
+              <SyncButton />
+            </div>
+          )}
+        </header>
+        <div className="mx-auto w-full max-w-4xl flex-1 p-4 md:p-6">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -6,7 +6,7 @@
  * /auth/google hits the Route Handler as a full document request.
  * Errors are surfaced via the `?error=` search param set by the callback route.
  */
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { FieldDescription } from '@/components/ui/field'
+import { cn } from '@/lib/utils'
 
 export const metadata = { title: 'Sign in — KyaReFitting' }
 
@@ -42,12 +43,13 @@ export default async function SignInPage({ searchParams }) {
                   {ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.'}
                 </div>
               )}
-              <Button asChild variant="outline" className="w-full">
-                <a href="/auth/google">
-                  <GoogleIcon />
-                  Login with Google
-                </a>
-              </Button>
+              <a
+                href="/auth/google"
+                className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
+              >
+                <GoogleIcon />
+                Login with Google
+              </a>
             </div>
           </CardContent>
         </Card>

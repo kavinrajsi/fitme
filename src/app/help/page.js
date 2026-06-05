@@ -38,25 +38,25 @@ const FAQ = [
 
 export default function HelpPage() {
   return (
-    <main>
-      <a href="/">
+    <main className="max-w-2xl mx-auto px-6 py-12">
+      <a href="/" className="text-sm text-muted-foreground hover:text-foreground">
         ← Back
       </a>
-      <h1>Help &amp; FAQ</h1>
-      <p>Answers to common questions</p>
+      <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground">Help &amp; FAQ</h1>
+      <p className="mt-1 text-muted-foreground">Answers to common questions</p>
 
-      <article>
+      <article className="mt-8">
         {FAQ.map((item) => (
           <div key={item.q}>
-            <h2>{item.q}</h2>
-            <p>{item.a}</p>
+            <h2 className="text-lg font-semibold mt-8 mb-2 text-foreground">{item.q}</h2>
+            <p className="text-muted-foreground leading-7 mb-4">{item.a}</p>
           </div>
         ))}
 
-        <h2>Still need help?</h2>
-        <p>
-          Email us at <strong>kavin@madarth.com</strong> (or devatmadarth@gmail.com) and
-          we&apos;ll get back to you.
+        <h2 className="text-lg font-semibold mt-8 mb-2 text-foreground">Still need help?</h2>
+        <p className="text-muted-foreground leading-7 mb-4">
+          Email us at <strong className="text-foreground font-medium">kavin@madarth.com</strong> (or
+          devatmadarth@gmail.com) and we&apos;ll get back to you.
         </p>
       </article>
     </main>

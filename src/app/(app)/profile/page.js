@@ -6,6 +6,17 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
 import { signOut } from '../../actions/auth'
 import { saveStepGoal } from '../../actions/goal'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,63 +40,70 @@ export default async function ProfilePage({ searchParams }) {
   const initial = (name?.[0] ?? d?.email?.[0] ?? '?').toUpperCase()
 
   return (
-    <>
-      <div>
-        {d?.avatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={d.avatar} alt="" width={56} height={56} />
-        ) : (
-          <div aria-hidden="true">
-            {initial}
-          </div>
-        )}
-        <div>
-          <h1>{name}</h1>
-          {d?.email && <p>{d.email}</p>}
+    <div className="mx-auto w-full max-w-md space-y-6 px-4 py-8">
+      <div className="flex items-center gap-4">
+        <Avatar size="lg">
+          {d?.avatar ? <AvatarImage src={d.avatar} alt="" /> : null}
+          <AvatarFallback>{initial}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <h1 className="truncate font-semibold">{name}</h1>
+          {d?.email && (
+            <p className="truncate text-sm text-muted-foreground">{d.email}</p>
+          )}
         </div>
       </div>
 
-      <div>
-        <div>
-          <h2>Details</h2>
-          <p>From Google Health and your account</p>
-        </div>
-        <Detail label="Height" value={d?.heightCm != null ? `${d.heightCm} cm` : null} />
-        <Detail label="Weight" value={d?.weightKg != null ? `${d.weightKg} kg` : null} />
-        <Detail label="BMI" value={d?.bmi != null ? `${d.bmi} (${d.bmiCategory})` : null} />
-        <Detail label="Age" value={d?.age != null ? `${d.age}` : null} />
-        <Detail label="Gender" value={d?.gender} />
-        <Detail label="Birthday" value={d?.birthday} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Details</CardTitle>
+          <CardDescription>From Google Health and your account</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <Detail label="Height" value={d?.heightCm != null ? `${d.heightCm} cm` : null} />
+          <Detail label="Weight" value={d?.weightKg != null ? `${d.weightKg} kg` : null} />
+          <Detail label="BMI" value={d?.bmi != null ? `${d.bmi} (${d.bmiCategory})` : null} />
+          <Detail label="Age" value={d?.age != null ? `${d.age}` : null} />
+          <Detail label="Gender" value={d?.gender} />
+          <Detail label="Birthday" value={d?.birthday} last />
+        </CardContent>
+      </Card>
 
-      <div>
-        <div>
-          <h2>Google Health</h2>
-          <p>Sync steps, heart rate, sleep and more</p>
-        </div>
-        {health === 'connected' && <p>Google Health connected.</p>}
-        {health === 'connect_failed' && (
-          <p>Couldn&apos;t connect Google Health — please try again.</p>
-        )}
-        <a
-          href="/auth/google/health"
-         
-        >
-          {d?.healthConnected ? 'Reconnect Google Health' : 'Connect Google Health'}
-        </a>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Google Health</CardTitle>
+          <CardDescription>Sync steps, heart rate, sleep and more</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {health === 'connected' && (
+            <p className="text-sm text-muted-foreground">Google Health connected.</p>
+          )}
+          {health === 'connect_failed' && (
+            <p className="text-sm text-destructive">
+              Couldn&apos;t connect Google Health — please try again.
+            </p>
+          )}
+          <Button
+            variant="outline"
+            className="w-full"
+            render={<a href="/auth/google/health" />}
+          >
+            {d?.healthConnected ? 'Reconnect Google Health' : 'Connect Google Health'}
+          </Button>
+        </CardContent>
+      </Card>
 
-      <div>
-        <div>
-          <h2>Daily step goal</h2>
-          <p>Your target for the dashboard goal ring</p>
-        </div>
-        <form action={saveStepGoal}>
-          <div>
-            <label>
-              <span>Goal (steps/day)</span>
-              <input
-               
+      <Card>
+        <CardHeader>
+          <CardTitle>Daily step goal</CardTitle>
+          <CardDescription>Your target for the dashboard goal ring</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={saveStepGoal} className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="daily_step_goal">Goal (steps/day)</Label>
+              <Input
+                id="daily_step_goal"
                 type="number"
                 name="daily_step_goal"
                 step="500"
@@ -93,37 +111,44 @@ export default async function ProfilePage({ searchParams }) {
                 max="100000"
                 defaultValue={goal}
               />
-            </label>
-          </div>
-          <button
-            type="submit"
-           
-          >
-            Save goal
-          </button>
-        </form>
-      </div>
+            </div>
+            <Button type="submit" className="w-full">
+              Save goal
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <form action={signOut}>
-        <button type="submit">
+        <Button type="submit" variant="outline" className="w-full">
           Sign out
-        </button>
+        </Button>
       </form>
 
-      <nav>
-        <a href="/help">Help</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/terms">Terms</a>
+      <nav className="flex justify-center gap-4 text-sm text-muted-foreground">
+        <a href="/help" className="underline underline-offset-4 hover:text-foreground">
+          Help
+        </a>
+        <a href="/privacy" className="underline underline-offset-4 hover:text-foreground">
+          Privacy
+        </a>
+        <a href="/terms" className="underline underline-offset-4 hover:text-foreground">
+          Terms
+        </a>
       </nav>
-    </>
+    </div>
   )
 }
 
-function Detail({ label, value }) {
+function Detail({ label, value, last }) {
   return (
-    <div>
-      <span>{label}</span>
-      <span>{value ?? '—'}</span>
+    <div
+      className={`flex items-center justify-between py-3 ${
+        last ? '' : 'border-b border-border'
+      }`}
+    >
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium">{value ?? '—'}</span>
     </div>
   )
 }

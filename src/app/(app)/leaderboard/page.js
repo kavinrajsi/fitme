@@ -8,6 +8,23 @@
  */
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,57 +73,83 @@ export default async function LeaderboardPage({ searchParams }) {
   const anySteps = ranked.some((r) => r.steps > 0)
 
   return (
-    <div>
-      <div>
-        <h1>Leaderboard</h1>
-        <p>Total steps · {period.label}</p>
-      </div>
+    <Card className="mx-auto w-full max-w-2xl">
+      <CardHeader>
+        <CardTitle>Leaderboard</CardTitle>
+        <CardDescription>Total steps · {period.label}</CardDescription>
+      </CardHeader>
 
-      <div>
-        {PERIODS.map((p) => (
-          <a
-            key={p.key}
-            href={`/leaderboard?period=${p.key}`}
-           
-          >
-            {p.label}
-          </a>
-        ))}
-      </div>
+      <CardContent>
+        <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-1">
+          {PERIODS.map((p) => {
+            const active = p.key === period.key
+            return (
+              <a
+                key={p.key}
+                href={`/leaderboard?period=${p.key}`}
+                className={cn(
+                  'rounded-md px-3 py-1 text-sm font-medium transition-colors',
+                  active
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {p.label}
+              </a>
+            )
+          })}
+        </div>
+      </CardContent>
 
       {!anySteps ? (
-        <p>No steps on the leaderboard yet — sync to get on the board.</p>
+        <CardContent>
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No steps on the leaderboard yet — sync to get on the board.
+          </p>
+        </CardContent>
       ) : (
-        <ul>
-            {shown.map((r) => (
-              <li
-                key={r.id}
-               
-              >
-                <span>{r.rank}</span>
-                {r.avatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                   
-                    src={r.avatar}
-                    alt=""
-                    width={32}
-                    height={32}
-                  />
-                ) : (
-                  <span aria-hidden="true">
-                    {(r.name?.[0] ?? '?').toUpperCase()}
-                  </span>
-                )}
-                <span>
-                  {r.name}
-                  {r.id === user.id && <span> (you)</span>}
-                </span>
-                <span>{r.steps.toLocaleString()}</span>
-              </li>
-            ))}
-        </ul>
+        <CardContent className="px-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12 pl-4 text-center">#</TableHead>
+                <TableHead className="w-10"></TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead className="pr-4 text-right">Steps</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {shown.map((r) => {
+                const isYou = r.id === user.id
+                return (
+                  <TableRow key={r.id} className={cn(isYou && 'bg-muted/50')}>
+                    <TableCell className="pl-4 text-center font-medium text-muted-foreground tabular-nums">
+                      {r.rank}
+                    </TableCell>
+                    <TableCell>
+                      <Avatar size="sm">
+                        {r.avatar ? <AvatarImage src={r.avatar} alt="" /> : null}
+                        <AvatarFallback>
+                          {(r.name?.[0] ?? '?').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {r.name}
+                      {isYou && (
+                        <span className="text-muted-foreground"> (you)</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="pr-4 text-right tabular-nums">
+                      {r.steps.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
       )}
-    </div>
+    </Card>
   )
 }

@@ -4,6 +4,22 @@
  * user hasn't, or explains the sync hasn't run yet when there are no rows.
  */
 import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,64 +50,77 @@ export default async function DataPage() {
   const average = days.length ? Math.round(total / days.length) : 0
 
   return (
-    <div>
-      <div>
-        <h1>Steps</h1>
-        <p>Last {DAYS} days · Google Health</p>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Steps</CardTitle>
+        <CardDescription>Last {DAYS} days · Google Health</CardDescription>
+      </CardHeader>
 
-      {days.length === 0 ? (
-        <div>
-          <p>
-            {connected
-              ? 'No steps synced yet — the daily sync will populate this shortly.'
-              : 'Connect Google Health to start syncing your steps.'}
-          </p>
-          {!connected && (
-            <a
-              href="/auth/google/health"
-             
-            >
-              Connect Google Health
-            </a>
-          )}
-        </div>
-      ) : (
-        <>
-          <div>
-            <Stat label="Total" value={total.toLocaleString()} />
-            <Stat label="Daily avg" value={average.toLocaleString()} />
+      <CardContent>
+        {days.length === 0 ? (
+          <div className="flex flex-col items-start gap-4 py-6">
+            <p className="text-sm text-muted-foreground">
+              {connected
+                ? 'No steps synced yet — the daily sync will populate this shortly.'
+                : 'Connect Google Health to start syncing your steps.'}
+            </p>
+            {!connected && (
+              <Button asChild>
+                <a href="/auth/google/health">Connect Google Health</a>
+              </Button>
+            )}
           </div>
+        ) : (
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg border p-4">
+                <div className="text-xs font-medium text-muted-foreground">Total</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">
+                  {total.toLocaleString()}
+                </div>
+              </div>
+              <div className="rounded-lg border p-4">
+                <div className="text-xs font-medium text-muted-foreground">Daily avg</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">
+                  {average.toLocaleString()}
+                </div>
+              </div>
+            </div>
 
-          <ul>
-            {days.map((r) => (
-              <li key={r.date}>
-                <span>{formatDate(r.date)}</span>
-                <span>
-                  <span
-                   
-                    style={{ width: max ? `${((r.steps ?? 0) / max) * 100}%` : '0%' }}
-                  />
-                </span>
-                <span>{(r.steps ?? 0).toLocaleString()}</span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="w-full"></TableHead>
+                  <TableHead className="text-right">Steps</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {days.map((r) => (
+                  <TableRow key={r.date}>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatDate(r.date)}
+                    </TableCell>
+                    <TableCell className="w-full">
+                      <div
+                        className="bg-primary h-2 rounded"
+                        style={{ width: max ? `${((r.steps ?? 0) / max) * 100}%` : '0%' }}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">
+                      {(r.steps ?? 0).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
 function formatDate(iso) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-function Stat({ label, value }) {
-  return (
-    <div>
-      <span>{value}</span>
-      <span>{label}</span>
-    </div>
-  )
 }
