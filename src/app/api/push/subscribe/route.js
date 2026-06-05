@@ -17,10 +17,17 @@ export async function POST(request) {
   const auth = subscription?.keys?.auth
   if (!endpoint || !p256dh || !auth) return new Response('Bad Request', { status: 400 })
 
+  const device = typeof subscription.device === 'string' ? subscription.device.slice(0, 200) : null
+  const userAgent =
+    typeof subscription.userAgent === 'string' ? subscription.userAgent.slice(0, 500) : null
+
   const service = createServiceClient()
   const { error } = await service
     .from('push_subscriptions')
-    .upsert({ user_id: user.id, endpoint, p256dh, auth }, { onConflict: 'endpoint' })
+    .upsert(
+      { user_id: user.id, endpoint, p256dh, auth, device, user_agent: userAgent },
+      { onConflict: 'endpoint' }
+    )
   if (error) return new Response('Error', { status: 500 })
 
   return new Response(null, { status: 204 })

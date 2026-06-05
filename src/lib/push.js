@@ -36,7 +36,7 @@ export async function sendPushToAll(payload, { source = 'manual' } = {}) {
 
   const { data: subscriptions } = await service
     .from('push_subscriptions')
-    .select('user_id, endpoint, p256dh, auth')
+    .select('user_id, endpoint, p256dh, auth, device')
 
   const body = JSON.stringify(payload)
   const recipients = []
@@ -65,6 +65,7 @@ export async function sendPushToAll(payload, { source = 'manual' } = {}) {
         notification_id: notificationId,
         user_id: subscription.user_id,
         endpoint: subscription.endpoint,
+        device: subscription.device ?? null,
         status,
       })
     })
