@@ -8,7 +8,6 @@
  */
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,22 +56,18 @@ export default async function LeaderboardPage({ searchParams }) {
   const anySteps = ranked.some((r) => r.steps > 0)
 
   return (
-    <div className={styles.card}>
-      <div className={styles['card__head']}>
-        <h1 className={styles['card__title']}>Leaderboard</h1>
-        <p className={styles['card__desc']}>Total steps · {period.label}</p>
+    <div>
+      <div>
+        <h1>Leaderboard</h1>
+        <p>Total steps · {period.label}</p>
       </div>
 
-      <div className={styles['leaderboard__tabs']}>
+      <div>
         {PERIODS.map((p) => (
           <a
             key={p.key}
             href={`/leaderboard?period=${p.key}`}
-            className={
-              p.key === period.key
-                ? `${styles['leaderboard__tab']} ${styles['leaderboard__tab--active']}`
-                : styles['leaderboard__tab']
-            }
+           
           >
             {p.label}
           </a>
@@ -80,38 +75,34 @@ export default async function LeaderboardPage({ searchParams }) {
       </div>
 
       {!anySteps ? (
-        <p className={styles.note}>No steps on the leaderboard yet — sync to get on the board.</p>
+        <p>No steps on the leaderboard yet — sync to get on the board.</p>
       ) : (
-        <ul className={styles['leaderboard__list']}>
+        <ul>
             {shown.map((r) => (
               <li
                 key={r.id}
-                className={
-                  r.id === user.id
-                    ? `${styles['leaderboard__row']} ${styles['leaderboard__row--me']}`
-                    : styles['leaderboard__row']
-                }
+               
               >
-                <span className={styles['leaderboard__rank']}>{r.rank}</span>
+                <span>{r.rank}</span>
                 {r.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    className={styles['leaderboard__avatar']}
+                   
                     src={r.avatar}
                     alt=""
                     width={32}
                     height={32}
                   />
                 ) : (
-                  <span className={styles['leaderboard__avatar--fallback']} aria-hidden="true">
+                  <span aria-hidden="true">
                     {(r.name?.[0] ?? '?').toUpperCase()}
                   </span>
                 )}
-                <span className={styles['leaderboard__name']}>
+                <span>
                   {r.name}
-                  {r.id === user.id && <span className={styles['leaderboard__you']}> (you)</span>}
+                  {r.id === user.id && <span> (you)</span>}
                 </span>
-                <span className={styles['leaderboard__steps']}>{r.steps.toLocaleString()}</span>
+                <span>{r.steps.toLocaleString()}</span>
               </li>
             ))}
         </ul>

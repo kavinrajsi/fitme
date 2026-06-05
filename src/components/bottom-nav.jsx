@@ -6,7 +6,6 @@
  */
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import styles from './bottom-nav.module.css'
 
 const TABS = [
   { href: '/dashboard', label: 'Home', icon: HomeIcon },
@@ -18,7 +17,7 @@ const TABS = [
 export function BottomNav() {
   const pathname = usePathname()
   return (
-    <nav className={styles.nav} aria-label="Primary">
+    <nav aria-label="Primary">
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href
         return (
@@ -26,12 +25,10 @@ export function BottomNav() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={
-              active ? `${styles['nav__tab']} ${styles['nav__tab--active']}` : styles['nav__tab']
-            }
+           
           >
             <Icon />
-            <span className={styles['nav__label']}>{label}</span>
+            <span>{label}</span>
           </Link>
         )
       })}

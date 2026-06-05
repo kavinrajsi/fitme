@@ -1,4 +1,3 @@
-import styles from '../legal.module.css'
 
 export const metadata = { title: 'Help — KyaReFitting' }
 
@@ -39,14 +38,14 @@ const FAQ = [
 
 export default function HelpPage() {
   return (
-    <main className={styles.page}>
-      <a href="/" className={styles.back}>
+    <main>
+      <a href="/">
         ← Back
       </a>
-      <h1 className={styles.title}>Help &amp; FAQ</h1>
-      <p className={styles.updated}>Answers to common questions</p>
+      <h1>Help &amp; FAQ</h1>
+      <p>Answers to common questions</p>
 
-      <article className={styles.article}>
+      <article>
         {FAQ.map((item) => (
           <div key={item.q}>
             <h2>{item.q}</h2>

@@ -5,7 +5,6 @@
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import styles from './landing.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,49 +50,49 @@ export default async function Home() {
   if (user) redirect('/dashboard')
 
   return (
-    <main className={styles.landing}>
-      <section className={styles.hero}>
-        <p className={styles.eyebrow}>KyaReFitting</p>
-        <h1 className={styles.title}>Fitness, made quietly beautiful.</h1>
-        <p className={styles.subtitle}>
+    <main>
+      <section>
+        <p>KyaReFitting</p>
+        <h1>Fitness, made quietly beautiful.</h1>
+        <p>
           A calmer way to see your movement. No noise, no ads, no judgement — just your steps,
           your goals, and your progress, presented with care and powered by Google Health.
         </p>
-        <a href="/signin" className={styles.cta}>
+        <a href="/signin">
           Sign in with Google
         </a>
       </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>What you get</h2>
-        <div className={styles.features}>
+      <section>
+        <h2>What you get</h2>
+        <div>
           {FEATURES.map((f) => (
-            <div key={f.title} className={styles.feature}>
-              <h3 className={styles.featureTitle}>{f.title}</h3>
-              <p className={styles.featureBody}>{f.body}</p>
+            <div key={f.title}>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>What we believe</h2>
-        <div className={styles.features}>
+      <section>
+        <h2>What we believe</h2>
+        <div>
           {PRINCIPLES.map((p) => (
-            <div key={p.title} className={styles.feature}>
-              <h3 className={styles.featureTitle}>{p.title}</h3>
-              <p className={styles.featureBody}>{p.body}</p>
+            <div key={p.title}>
+              <h3>{p.title}</h3>
+              <p>{p.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <p className={styles.note}>
+      <p>
         KyaReFitting is an independent project — a small, considered tool for people who just want
         to move a little more, every day.
       </p>
 
-      <footer className={styles.footer}>
+      <footer>
         <a href="/help">Help</a>
         <span aria-hidden="true">·</span>
         <a href="/privacy">Privacy Policy</a>

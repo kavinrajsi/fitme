@@ -1,17 +1,16 @@
-import styles from '../legal.module.css'
 
 export const metadata = { title: 'Privacy Policy — KyaReFitting' }
 
 export default function PrivacyPage() {
   return (
-    <main className={styles.page}>
-      <a href="/" className={styles.back}>
+    <main>
+      <a href="/">
         ← Back
       </a>
-      <h1 className={styles.title}>Privacy Policy</h1>
-      <p className={styles.updated}>Last updated: 5 June 2026</p>
+      <h1>Privacy Policy</h1>
+      <p>Last updated: 5 June 2026</p>
 
-      <article className={styles.article}>
+      <article>
         <p>
           KyaReFitting (&quot;we&quot;, &quot;us&quot;, the &quot;App&quot;) is a personal
           fitness dashboard that shows you your own Google Health activity. This policy
@@ -53,7 +52,7 @@ export default function PrivacyPage() {
         </p>
 
         <h2>Google API Limited Use</h2>
-        <p className={styles.callout}>
+        <p>
           KyaReFitting&apos;s use and transfer of information received from Google APIs to any
           other app will adhere to the{' '}
           <a

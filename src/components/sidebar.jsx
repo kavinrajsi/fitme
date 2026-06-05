@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from '@/app/actions/auth'
 import { SyncButton } from './sync-button'
-import styles from './sidebar.module.css'
 
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -20,10 +19,10 @@ const LINKS = [
 export function Sidebar({ healthConnected }) {
   const pathname = usePathname()
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles['sidebar__brand']}>KyaReFitting</div>
+    <aside>
+      <div>KyaReFitting</div>
 
-      <nav className={styles['sidebar__nav']}>
+      <nav>
         {LINKS.map((l) => {
           const active = pathname === l.href
           return (
@@ -31,11 +30,7 @@ export function Sidebar({ healthConnected }) {
               key={l.href}
               href={l.href}
               aria-current={active ? 'page' : undefined}
-              className={
-                active
-                  ? `${styles['sidebar__link']} ${styles['sidebar__link--active']}`
-                  : styles['sidebar__link']
-              }
+             
             >
               {l.label}
             </Link>
@@ -43,10 +38,10 @@ export function Sidebar({ healthConnected }) {
         })}
       </nav>
 
-      <div className={styles['sidebar__foot']}>
+      <div>
         {healthConnected && <SyncButton />}
         <form action={signOut}>
-          <button type="submit" className={styles['sidebar__signout']}>
+          <button type="submit">
             Sign out
           </button>
         </form>

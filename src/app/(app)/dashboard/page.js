@@ -6,7 +6,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
 import { computeGamification } from '@/lib/gamification'
-import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,22 +75,22 @@ export default async function DashboardPage({ searchParams }) {
 
   return (
     <>
-      <div className={styles.user}>
+      <div>
         {d?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles['user__avatar']} src={d.avatar} alt="" width={56} height={56} />
+          <img src={d.avatar} alt="" width={56} height={56} />
         ) : (
-          <div className={styles['user__avatar--fallback']} aria-hidden="true">
+          <div aria-hidden="true">
             {initial}
           </div>
         )}
         <div>
-          <h1 className={styles['user__name']}>Hi, {name}</h1>
-          {d?.email && <p className={styles['user__email']}>{d.email}</p>}
+          <h1>Hi, {name}</h1>
+          {d?.email && <p>{d.email}</p>}
         </div>
       </div>
 
-      <div className={styles['section-cards']}>
+      <div>
         <Metric
           label="Steps today"
           value={today.toLocaleString()}
@@ -122,24 +121,20 @@ export default async function DashboardPage({ searchParams }) {
         />
       </div>
 
-      <div className={styles.card}>
-        <div className={styles['activity__head']}>
+      <div>
+        <div>
           <div>
-            <h2 className={styles['card__title']}>Activity</h2>
-            <p className={styles['activity__desc']}>
+            <h2>Activity</h2>
+            <p>
               {chartTotal.toLocaleString()} steps · {chartAvg.toLocaleString()}/day avg
             </p>
           </div>
-          <div className={styles.segmented}>
+          <div>
             {RANGES.map((r) => (
               <a
                 key={r.key}
                 href={`/dashboard?range=${r.key}`}
-                className={
-                  r.key === range.key
-                    ? `${styles['segmented__item']} ${styles['segmented__item--active']}`
-                    : styles['segmented__item']
-                }
+               
               >
                 {r.label}
               </a>
@@ -147,11 +142,11 @@ export default async function DashboardPage({ searchParams }) {
           </div>
         </div>
 
-        <div className={styles.bars}>
+        <div>
           {series.map((s) => (
             <span
               key={s.key}
-              className={styles['bars__col']}
+             
               style={{ height: chartMax ? `${Math.max((s.steps / chartMax) * 100, 1.5)}%` : '1.5%' }}
               title={`${s.key}: ${s.steps.toLocaleString()}`}
             />
@@ -159,21 +154,17 @@ export default async function DashboardPage({ searchParams }) {
         </div>
       </div>
 
-      <div className={styles.card}>
-        <h2 className={styles['card__title']}>Achievements</h2>
-        <div className={styles.achievements}>
+      <div>
+        <h2>Achievements</h2>
+        <div>
           {game.achievements.map((a) => (
             <div
               key={a.id}
-              className={
-                a.earned
-                  ? `${styles.achievement} ${styles['achievement--earned']}`
-                  : `${styles.achievement} ${styles['achievement--locked']}`
-              }
+             
               title={a.name}
             >
-              <span className={styles['achievement__icon']}>{a.earned ? a.icon : '🔒'}</span>
-              <span className={styles['achievement__name']}>{a.name}</span>
+              <span>{a.earned ? a.icon : '🔒'}</span>
+              <span>{a.name}</span>
             </div>
           ))}
         </div>
@@ -182,7 +173,7 @@ export default async function DashboardPage({ searchParams }) {
       {!d?.healthConnected && (
         <a
           href="/auth/google/health"
-          className={`${styles.button} ${styles['button--primary']} ${styles['button--full']}`}
+         
         >
           Connect Google Health
         </a>
@@ -193,31 +184,27 @@ export default async function DashboardPage({ searchParams }) {
 
 function Metric({ label, value, trend, badge, progress, footLine, footNote }) {
   return (
-    <div className={`${styles.card} ${styles.metric}`}>
-      <div className={styles['metric__head']}>
-        <span className={styles['metric__label']}>{label}</span>
-        {badge && <span className={styles.badge}>{badge}</span>}
+    <div>
+      <div>
+        <span>{label}</span>
+        {badge && <span>{badge}</span>}
         {trend != null && (
           <span
-            className={
-              trend >= 0
-                ? `${styles.badge} ${styles['badge--up']}`
-                : `${styles.badge} ${styles['badge--down']}`
-            }
+           
           >
             {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%
           </span>
         )}
       </div>
-      <div className={styles['metric__value']}>{value}</div>
+      <div>{value}</div>
       {progress != null && (
-        <div className={styles['metric__progress']}>
+        <div>
           <span style={{ width: `${Math.min(progress * 100, 100)}%` }} />
         </div>
       )}
-      <div className={styles['metric__foot']}>
-        <div className={styles['metric__foot-line']}>{footLine}</div>
-        <div className={styles['metric__foot-note']}>{footNote}</div>
+      <div>
+        <div>{footLine}</div>
+        <div>{footNote}</div>
       </div>
     </div>
   )

@@ -1,17 +1,16 @@
-import styles from '../legal.module.css'
 
 export const metadata = { title: 'Terms of Service — KyaReFitting' }
 
 export default function TermsPage() {
   return (
-    <main className={styles.page}>
-      <a href="/" className={styles.back}>
+    <main>
+      <a href="/">
         ← Back
       </a>
-      <h1 className={styles.title}>Terms of Service</h1>
-      <p className={styles.updated}>Last updated: 5 June 2026</p>
+      <h1>Terms of Service</h1>
+      <p>Last updated: 5 June 2026</p>
 
-      <article className={styles.article}>
+      <article>
         <p>
           These Terms govern your use of KyaReFitting (the &quot;App&quot;). By signing in or
           using the App, you agree to these Terms. If you do not agree, please do not use the
@@ -34,7 +33,7 @@ export default function TermsPage() {
         </p>
 
         <h2>Health information disclaimer</h2>
-        <p className={styles.callout}>
+        <p>
           KyaReFitting is <strong>not a medical device</strong> and does not provide medical
           advice, diagnosis, or treatment. Health and fitness data shown in the App may be
           inaccurate or incomplete and should not be relied upon for medical decisions. Always

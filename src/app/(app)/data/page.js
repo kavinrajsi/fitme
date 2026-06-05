@@ -4,7 +4,6 @@
  * user hasn't, or explains the sync hasn't run yet when there are no rows.
  */
 import { createClient } from '@/lib/supabase/server'
-import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,15 +34,15 @@ export default async function DataPage() {
   const average = days.length ? Math.round(total / days.length) : 0
 
   return (
-    <div className={styles.card}>
-      <div className={styles['card__head']}>
-        <h1 className={styles['card__title']}>Steps</h1>
-        <p className={styles['card__desc']}>Last {DAYS} days · Google Health</p>
+    <div>
+      <div>
+        <h1>Steps</h1>
+        <p>Last {DAYS} days · Google Health</p>
       </div>
 
       {days.length === 0 ? (
-        <div className={styles.prompt}>
-          <p className={styles.note}>
+        <div>
+          <p>
             {connected
               ? 'No steps synced yet — the daily sync will populate this shortly.'
               : 'Connect Google Health to start syncing your steps.'}
@@ -51,7 +50,7 @@ export default async function DataPage() {
           {!connected && (
             <a
               href="/auth/google/health"
-              className={`${styles.button} ${styles['button--primary']}`}
+             
             >
               Connect Google Health
             </a>
@@ -59,22 +58,22 @@ export default async function DataPage() {
         </div>
       ) : (
         <>
-          <div className={styles.stats}>
+          <div>
             <Stat label="Total" value={total.toLocaleString()} />
             <Stat label="Daily avg" value={average.toLocaleString()} />
           </div>
 
-          <ul className={styles.chart}>
+          <ul>
             {days.map((r) => (
-              <li key={r.date} className={styles['chart__row']}>
-                <span className={styles['chart__date']}>{formatDate(r.date)}</span>
-                <span className={styles['chart__track']}>
+              <li key={r.date}>
+                <span>{formatDate(r.date)}</span>
+                <span>
                   <span
-                    className={styles['chart__bar']}
+                   
                     style={{ width: max ? `${((r.steps ?? 0) / max) * 100}%` : '0%' }}
                   />
                 </span>
-                <span className={styles['chart__count']}>{(r.steps ?? 0).toLocaleString()}</span>
+                <span>{(r.steps ?? 0).toLocaleString()}</span>
               </li>
             ))}
           </ul>
@@ -90,9 +89,9 @@ function formatDate(iso) {
 
 function Stat({ label, value }) {
   return (
-    <div className={styles.stat}>
-      <span className={styles['stat__value']}>{value}</span>
-      <span className={styles['stat__label']}>{label}</span>
+    <div>
+      <span>{value}</span>
+      <span>{label}</span>
     </div>
   )
 }

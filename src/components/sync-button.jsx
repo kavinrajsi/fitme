@@ -5,7 +5,6 @@
  * and then shows the synced results (totals + the most recent days).
  */
 import { useState } from 'react'
-import styles from './sync-button.module.css'
 
 export function SyncButton() {
   const [open, setOpen] = useState(false)
@@ -54,17 +53,17 @@ export function SyncButton() {
 
   return (
     <>
-      <button className={styles['sync-button']} onClick={runSync} disabled={running}>
+      <button onClick={runSync} disabled={running}>
         {running ? 'Syncing…' : 'Sync'}
       </button>
 
       {open && (
-        <div className={styles['sync-modal']} onClick={close}>
-          <div className={styles['sync-modal__panel']} onClick={(e) => e.stopPropagation()}>
-            <div className={styles['sync-modal__head']}>
+        <div onClick={close}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <div>
               <strong>Sync Google Health</strong>
               <button
-                className={styles['sync-modal__close']}
+               
                 onClick={close}
                 disabled={running}
                 aria-label="Close"
@@ -73,33 +72,33 @@ export function SyncButton() {
               </button>
             </div>
 
-            <ul className={styles['sync-modal__steps']}>
+            <ul>
               {steps.map((s, i) => {
                 const isLast = i === steps.length - 1
                 const inProgress = running && isLast && !result && !error
                 return (
-                  <li key={i} className={styles['sync-modal__step']}>
-                    <span className={styles['sync-modal__step-mark']}>{inProgress ? '⋯' : '✓'}</span>
+                  <li key={i}>
+                    <span>{inProgress ? '⋯' : '✓'}</span>
                     {s}
                   </li>
                 )
               })}
             </ul>
 
-            {error && <p className={styles['sync-modal__error']}>{error}</p>}
+            {error && <p>{error}</p>}
 
             {result && (
-              <div className={styles['sync-modal__summary']}>
-                <p className={styles['sync-modal__summary-line']}>
+              <div>
+                <p>
                   Synced <strong>{result.summary.days}</strong> days ·{' '}
                   {result.summary.withSteps} with steps
                 </p>
-                <p className={styles['sync-modal__summary-line']}>
+                <p>
                   <strong>{result.summary.totalSteps.toLocaleString()}</strong> total steps ·{' '}
                   {result.summary.avgSteps.toLocaleString()}/day avg
                 </p>
 
-                <table className={styles['sync-modal__table']}>
+                <table>
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -122,7 +121,7 @@ export function SyncButton() {
 
                 <a
                   href="/data"
-                  className={styles['sync-modal__view-link']}
+                 
                   onClick={() => setOpen(false)}
                 >
                   View all steps →

@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/server'
 import { BottomNav } from '@/components/bottom-nav'
 import { Sidebar } from '@/components/sidebar'
 import { SyncButton } from '@/components/sync-button'
-import styles from './app.module.css'
 
 export default async function AppLayout({ children }) {
   const supabase = await createClient()
@@ -25,15 +24,15 @@ export default async function AppLayout({ children }) {
   const healthConnected = !!profile?.google_health_refresh_token
 
   return (
-    <div className={styles.shell}>
+    <div>
       <Sidebar healthConnected={healthConnected} />
 
-      <header className={styles['shell__topbar']}>
-        <span className={styles['shell__brand']}>KyaReFitting</span>
+      <header>
+        <span>KyaReFitting</span>
         {healthConnected && <SyncButton />}
       </header>
 
-      <main className={styles['shell__main']}>{children}</main>
+      <main>{children}</main>
 
       <BottomNav />
     </div>

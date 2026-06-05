@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
 import { signOut } from '../../actions/auth'
 import { saveStepGoal } from '../../actions/goal'
-import styles from '../app.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,25 +30,25 @@ export default async function ProfilePage({ searchParams }) {
 
   return (
     <>
-      <div className={styles.user}>
+      <div>
         {d?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles['user__avatar']} src={d.avatar} alt="" width={56} height={56} />
+          <img src={d.avatar} alt="" width={56} height={56} />
         ) : (
-          <div className={styles['user__avatar--fallback']} aria-hidden="true">
+          <div aria-hidden="true">
             {initial}
           </div>
         )}
         <div>
-          <h1 className={styles['user__name']}>{name}</h1>
-          {d?.email && <p className={styles['user__email']}>{d.email}</p>}
+          <h1>{name}</h1>
+          {d?.email && <p>{d.email}</p>}
         </div>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles['card__head']}>
-          <h2 className={styles['card__title']}>Details</h2>
-          <p className={styles['card__desc']}>From Google Health and your account</p>
+      <div>
+        <div>
+          <h2>Details</h2>
+          <p>From Google Health and your account</p>
         </div>
         <Detail label="Height" value={d?.heightCm != null ? `${d.heightCm} cm` : null} />
         <Detail label="Weight" value={d?.weightKg != null ? `${d.weightKg} kg` : null} />
@@ -59,34 +58,34 @@ export default async function ProfilePage({ searchParams }) {
         <Detail label="Birthday" value={d?.birthday} />
       </div>
 
-      <div className={styles.card}>
-        <div className={styles['card__head']}>
-          <h2 className={styles['card__title']}>Google Health</h2>
-          <p className={styles['card__desc']}>Sync steps, heart rate, sleep and more</p>
+      <div>
+        <div>
+          <h2>Google Health</h2>
+          <p>Sync steps, heart rate, sleep and more</p>
         </div>
-        {health === 'connected' && <p className={styles.hint}>Google Health connected.</p>}
+        {health === 'connected' && <p>Google Health connected.</p>}
         {health === 'connect_failed' && (
-          <p className={styles.hint}>Couldn&apos;t connect Google Health — please try again.</p>
+          <p>Couldn&apos;t connect Google Health — please try again.</p>
         )}
         <a
           href="/auth/google/health"
-          className={`${styles.button} ${styles['button--full']}`}
+         
         >
           {d?.healthConnected ? 'Reconnect Google Health' : 'Connect Google Health'}
         </a>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles['card__head']}>
-          <h2 className={styles['card__title']}>Daily step goal</h2>
-          <p className={styles['card__desc']}>Your target for the dashboard goal ring</p>
+      <div>
+        <div>
+          <h2>Daily step goal</h2>
+          <p>Your target for the dashboard goal ring</p>
         </div>
-        <form action={saveStepGoal} className={styles.form}>
-          <div className={styles['form__fields']}>
-            <label className={styles['form__field']}>
+        <form action={saveStepGoal}>
+          <div>
+            <label>
               <span>Goal (steps/day)</span>
               <input
-                className={styles['form__input']}
+               
                 type="number"
                 name="daily_step_goal"
                 step="500"
@@ -98,7 +97,7 @@ export default async function ProfilePage({ searchParams }) {
           </div>
           <button
             type="submit"
-            className={`${styles.button} ${styles['button--primary']} ${styles['button--full']}`}
+           
           >
             Save goal
           </button>
@@ -106,12 +105,12 @@ export default async function ProfilePage({ searchParams }) {
       </div>
 
       <form action={signOut}>
-        <button type="submit" className={`${styles.button} ${styles['button--full']}`}>
+        <button type="submit">
           Sign out
         </button>
       </form>
 
-      <nav className={styles.links}>
+      <nav>
         <a href="/help">Help</a>
         <a href="/privacy">Privacy</a>
         <a href="/terms">Terms</a>
@@ -122,9 +121,9 @@ export default async function ProfilePage({ searchParams }) {
 
 function Detail({ label, value }) {
   return (
-    <div className={styles.detail}>
-      <span className={styles['detail__label']}>{label}</span>
-      <span className={styles['detail__value']}>{value ?? '—'}</span>
+    <div>
+      <span>{label}</span>
+      <span>{value ?? '—'}</span>
     </div>
   )
 }

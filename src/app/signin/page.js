@@ -8,7 +8,6 @@
  * Errors are surfaced via the `?error=` search param set by the callback route.
  * searchParams must be awaited in Next.js 16 before its properties are read.
  */
-import styles from './signin.module.css'
 
 export const metadata = { title: 'Sign in — KyaReFitting' }
 
@@ -22,29 +21,29 @@ export default async function SignInPage({ searchParams }) {
   const { error } = await searchParams
 
   return (
-    <main className={styles.signin}>
-      <div className={styles['signin__container']}>
-        <div className={styles['signin__card']}>
-          <div className={styles['signin__header']}>
-            <h1 className={styles['signin__title']}>Welcome back</h1>
-            <p className={styles['signin__description']}>Login with your Google account</p>
+    <main>
+      <div>
+        <div>
+          <div>
+            <h1>Welcome back</h1>
+            <p>Login with your Google account</p>
           </div>
 
-          <div className={styles['signin__content']}>
+          <div>
             {error && (
-              <div className={styles['signin__error']} role="alert">
+              <div role="alert">
                 {ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.'}
               </div>
             )}
 
-            <a className={styles['signin__button']} href="/auth/google">
+            <a href="/auth/google">
               <GoogleIcon />
               Login with Google
             </a>
           </div>
         </div>
 
-        <p className={styles['signin__legal']}>
+        <p>
           By clicking continue, you agree to our <a href="/terms">Terms of Service</a> and{' '}
           <a href="/privacy">Privacy Policy</a>.
         </p>
