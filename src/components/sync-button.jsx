@@ -61,14 +61,14 @@ export function SyncButton() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
           onClick={close}
         >
           <div
-            className="bg-background w-full max-w-md rounded-t-2xl border p-6 shadow-lg sm:rounded-2xl"
+            className="bg-background flex h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-center justify-between">
+            <div className="flex shrink-0 items-center justify-between border-b p-4">
               <strong className="text-base font-semibold">Sync Google Health</strong>
               <Button
                 variant="ghost"
@@ -81,70 +81,72 @@ export function SyncButton() {
               </Button>
             </div>
 
-            <ul className="flex flex-col gap-2 text-sm">
-              {steps.map((step, i) => {
-                const isLast = i === steps.length - 1
-                const inProgress = running && isLast && !result && !error
-                return (
-                  <li key={i} className="flex items-center gap-2">
-                    <span className="text-muted-foreground w-4 text-center">
-                      {inProgress ? '⋯' : '✓'}
-                    </span>
-                    {step}
-                  </li>
-                )
-              })}
-            </ul>
+            <div className="flex-1 overflow-y-auto p-4">
+              <ul className="flex flex-col gap-2 text-sm">
+                {steps.map((step, i) => {
+                  const isLast = i === steps.length - 1
+                  const inProgress = running && isLast && !result && !error
+                  return (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="text-muted-foreground w-4 text-center">
+                        {inProgress ? '⋯' : '✓'}
+                      </span>
+                      {step}
+                    </li>
+                  )
+                })}
+              </ul>
 
-            {error && (
-              <p className="bg-destructive/10 text-destructive mt-4 rounded-md p-3 text-sm">
-                {error}
-              </p>
-            )}
-
-            {result && (
-              <div className="mt-4 border-t pt-4">
-                <p className="text-muted-foreground text-sm">
-                  Synced <strong className="text-foreground">{result.summary.days}</strong> days ·{' '}
-                  {result.summary.withSteps} with steps
+              {error && (
+                <p className="bg-destructive/10 text-destructive mt-4 rounded-md p-3 text-sm">
+                  {error}
                 </p>
-                <p className="text-muted-foreground text-sm">
-                  <strong className="text-foreground">
-                    {result.summary.totalSteps.toLocaleString()}
-                  </strong>{' '}
-                  total steps · {result.summary.avgSteps.toLocaleString()}/day avg
-                </p>
+              )}
 
-                <table className="mt-3 w-full text-sm tabular-nums">
-                  <thead>
-                    <tr className="text-muted-foreground border-b text-left text-xs">
-                      <th className="py-1 font-medium">Date</th>
-                      <th className="py-1 text-right font-medium">Steps</th>
-                      <th className="py-1 text-right font-medium">Cal</th>
-                      <th className="py-1 text-right font-medium">Km</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.recent.map((day) => (
-                      <tr key={day.date} className="border-b last:border-0">
-                        <td className="py-1">{day.date}</td>
-                        <td className="py-1 text-right">{(day.steps ?? 0).toLocaleString()}</td>
-                        <td className="py-1 text-right">{day.calories ?? 0}</td>
-                        <td className="py-1 text-right">{day.distance_km ?? 0}</td>
+              {result && (
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-muted-foreground text-sm">
+                    Synced <strong className="text-foreground">{result.summary.days}</strong> days ·{' '}
+                    {result.summary.withSteps} with steps
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    <strong className="text-foreground">
+                      {result.summary.totalSteps.toLocaleString()}
+                    </strong>{' '}
+                    total steps · {result.summary.avgSteps.toLocaleString()}/day avg
+                  </p>
+
+                  <table className="mt-3 w-full text-sm tabular-nums">
+                    <thead>
+                      <tr className="text-muted-foreground border-b text-left text-xs">
+                        <th className="py-1 font-medium">Date</th>
+                        <th className="py-1 text-right font-medium">Steps</th>
+                        <th className="py-1 text-right font-medium">Cal</th>
+                        <th className="py-1 text-right font-medium">Km</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {result.recent.map((day) => (
+                        <tr key={day.date} className="border-b last:border-0">
+                          <td className="py-1">{day.date}</td>
+                          <td className="py-1 text-right">{(day.steps ?? 0).toLocaleString()}</td>
+                          <td className="py-1 text-right">{day.calories ?? 0}</td>
+                          <td className="py-1 text-right">{day.distance_km ?? 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
 
-                <a
-                  href="/data"
-                  className="mt-3 inline-block text-sm font-medium underline-offset-4 hover:underline"
-                  onClick={() => setOpen(false)}
-                >
-                  View all steps →
-                </a>
-              </div>
-            )}
+                  <a
+                    href="/data"
+                    className="mt-3 inline-block text-sm font-medium underline-offset-4 hover:underline"
+                    onClick={() => setOpen(false)}
+                  >
+                    View all steps →
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
