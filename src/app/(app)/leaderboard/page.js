@@ -33,7 +33,7 @@ export const metadata = { title: 'Leaderboard — KyaReFitting aa' }
 const PERIODS = [
   { key: 'today', label: 'Today', days: 1 },
   { key: '7d', label: '7D', days: 7 },
-  { key: '30d', label: '30D', days: 30 },
+  { key: 'month', label: 'This month', month: true },
 ]
 
 export default async function LeaderboardPage({ searchParams }) {
@@ -47,7 +47,14 @@ export default async function LeaderboardPage({ searchParams }) {
 
   const service = createServiceClient()
   const istNow = Date.now() + 5.5 * 3600 * 1000
-  const since = new Date(istNow - (period.days - 1) * 86400000).toISOString().slice(0, 10)
+  const istDate = new Date(istNow)
+  // "This month" = from the 1st of the current (IST) calendar month; otherwise a
+  // rolling N-day window.
+  const since = period.month
+    ? new Date(Date.UTC(istDate.getUTCFullYear(), istDate.getUTCMonth(), 1))
+        .toISOString()
+        .slice(0, 10)
+    : new Date(istNow - (period.days - 1) * 86400000).toISOString().slice(0, 10)
 
   const [{ data: metrics }, { data: profiles }] = await Promise.all([
     service.from('daily_metrics').select('user_id, steps').gte('date', since),
