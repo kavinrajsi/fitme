@@ -5,6 +5,8 @@
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { buttonVariants } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,54 +52,64 @@ export default async function Home() {
   if (user) redirect('/dashboard')
 
   return (
-    <main>
-      <section>
-        <p>KyaReFitting</p>
-        <h1>Fitness, made quietly beautiful.</h1>
-        <p>
+    <main className="max-w-5xl mx-auto px-6 py-16">
+      <section className="space-y-6">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          KyaReFitting
+        </p>
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
+          Fitness, made quietly beautiful.
+        </h1>
+        <p className="max-w-prose text-muted-foreground leading-7">
           A calmer way to see your movement. No noise, no ads, no judgement — just your steps,
           your goals, and your progress, presented with care and powered by Google Health.
         </p>
-        <a href="/signin">
-          Sign in with Google
-        </a>
+        <div>
+          <a href="/signin" className={buttonVariants({ size: 'lg' })}>
+            Sign in with Google
+          </a>
+        </div>
       </section>
 
-      <section>
-        <h2>What you get</h2>
-        <div>
+      <section className="mt-16 space-y-6">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">What you get</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
           {FEATURES.map((f) => (
-            <div key={f.title}>
-              <h3>{f.title}</h3>
-              <p>{f.body}</p>
-            </div>
+            <Card key={f.title}>
+              <CardHeader>
+                <CardTitle>{f.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground leading-7">{f.body}</CardContent>
+            </Card>
           ))}
         </div>
       </section>
 
-      <section>
-        <h2>What we believe</h2>
-        <div>
+      <section className="mt-16 space-y-6">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">What we believe</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
           {PRINCIPLES.map((p) => (
-            <div key={p.title}>
-              <h3>{p.title}</h3>
-              <p>{p.body}</p>
-            </div>
+            <Card key={p.title}>
+              <CardHeader>
+                <CardTitle>{p.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground leading-7">{p.body}</CardContent>
+            </Card>
           ))}
         </div>
       </section>
 
-      <p>
+      <p className="mt-16 max-w-prose text-muted-foreground leading-7">
         KyaReFitting is an independent project — a small, considered tool for people who just want
         to move a little more, every day.
       </p>
 
-      <footer>
-        <a href="/help">Help</a>
+      <footer className="mt-12 flex flex-wrap items-center gap-3 border-t pt-8 text-sm text-muted-foreground">
+        <a href="/help" className="underline hover:text-foreground">Help</a>
         <span aria-hidden="true">·</span>
-        <a href="/privacy">Privacy Policy</a>
+        <a href="/privacy" className="underline hover:text-foreground">Privacy Policy</a>
         <span aria-hidden="true">·</span>
-        <a href="/terms">Terms of Service</a>
+        <a href="/terms" className="underline hover:text-foreground">Terms of Service</a>
       </footer>
     </main>
   )
