@@ -30,11 +30,14 @@ export async function notifyTopMovers(service) {
       const before = previous[row.id]
       if (before != null && current - before >= THRESHOLD) {
         const delta = current - before
-        await sendPushToAll({
-          title: 'Leaderboard',
-          body: `${row.full_name ?? 'Someone'} added ${delta.toLocaleString()} steps — now ${current.toLocaleString()}`,
-          url: '/leaderboard',
-        })
+        await sendPushToAll(
+          {
+            title: 'Leaderboard',
+            body: `${row.full_name ?? 'Someone'} added ${delta.toLocaleString()} steps — now ${current.toLocaleString()}`,
+            url: '/leaderboard',
+          },
+          { source: 'leaderboard' }
+        )
       }
       rows.push({ user_id: row.id, steps_7d: current, updated_at: now })
     }

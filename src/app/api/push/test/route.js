@@ -12,10 +12,13 @@ export async function POST() {
   } = await supabase.auth.getUser()
   if (user?.email !== ADMIN_EMAIL) return new Response('Forbidden', { status: 403 })
 
-  const { sent } = await sendPushToAll({
-    title: 'KyaReFitting',
-    body: 'Test notification — push is working 🎉',
-    url: '/leaderboard',
-  })
+  const { sent } = await sendPushToAll(
+    {
+      title: 'KyaReFitting',
+      body: 'Test notification — push is working 🎉',
+      url: '/leaderboard',
+    },
+    { source: 'test' }
+  )
   return Response.json({ sent })
 }
