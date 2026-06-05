@@ -34,7 +34,15 @@ export const metadata = {
 }
 
 const fmtDateTime = (value) =>
-  value ? new Date(value).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'
+  value
+    ? new Date(value).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata',
+      })
+    : '—'
 
 export default async function AdminNotificationPage({ params }) {
   const { id } = await params

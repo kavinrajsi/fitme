@@ -37,7 +37,15 @@ export const metadata = {
 const fmtDate = (value) =>
   value ? new Date(value).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' }) : '—'
 const fmtDateTime = (value) =>
-  value ? new Date(value).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'
+  value
+    ? new Date(value).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata',
+      })
+    : '—'
 const dash = (value, suffix = '') => (value == null ? '—' : `${value}${suffix}`)
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
