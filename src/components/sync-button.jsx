@@ -5,6 +5,7 @@
  * and then shows the synced results (totals + the most recent days).
  */
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -59,11 +60,12 @@ export function SyncButton() {
         {running ? 'Syncing…' : 'Sync'}
       </Button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
-          onClick={close}
-        >
+      {open &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+            onClick={close}
+          >
           <div
             className="bg-background flex h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border shadow-lg"
             onClick={(e) => e.stopPropagation()}
@@ -148,8 +150,9 @@ export function SyncButton() {
               )}
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body
+        )}
     </>
   )
 }
