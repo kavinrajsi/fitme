@@ -15,6 +15,7 @@ export function SyncButton() {
   const [steps, setSteps] = useState([])
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [reconnect, setReconnect] = useState(false)
 
   // Lock background page scroll while the sheet is open.
   useEffect(() => {
@@ -32,6 +33,7 @@ export function SyncButton() {
     setSteps([])
     setResult(null)
     setError(null)
+    setReconnect(false)
 
     try {
       const response = await fetch('/api/sync', { method: 'POST' })
@@ -50,6 +52,7 @@ export function SyncButton() {
           const event = JSON.parse(line)
           if (event.step) setSteps((previousSteps) => [...previousSteps, event.step])
           if (event.error) setError(event.error)
+          if (event.reconnect) setReconnect(true)
           if (event.done) setResult(event)
         }
       }
@@ -110,9 +113,17 @@ export function SyncButton() {
               </ul>
 
               {error && (
-                <p className="bg-destructive/10 text-destructive mt-4 rounded-md p-3 text-sm">
-                  {error}
-                </p>
+                <div className="bg-destructive/10 text-destructive mt-4 rounded-md p-3 text-sm">
+                  <p>{error}</p>
+                  {reconnect && (
+                    <a
+                      href="/auth/google/health"
+                      className="mt-2 inline-block font-medium underline underline-offset-4"
+                    >
+                      Reconnect Google Health →
+                    </a>
+                  )}
+                </div>
               )}
 
               {result && (

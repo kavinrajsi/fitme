@@ -53,11 +53,13 @@ export async function POST() {
         })
 
         if (!result.ok) {
+          const needsReconnect =
+            result.reason === 'no_token' || result.reason === 'reconnect_required'
           send({
-            error:
-              result.reason === 'no_token'
-                ? 'Could not refresh your Google Health token — please reconnect.'
-                : 'Sync failed — please try again.',
+            error: needsReconnect
+              ? 'Could not access Google Health — please reconnect.'
+              : 'Sync failed — please try again.',
+            reconnect: needsReconnect,
           })
           return controller.close()
         }
@@ -76,7 +78,8 @@ export async function POST() {
           recent: metrics.slice(0, 7), // already newest-first
         })
         controller.close()
-      } catch {
+      } catch (err) {
+        console.error('[sync] error for user', user?.id, err?.message ?? err)
         send({ error: 'Sync failed — please try again.' })
         controller.close()
       }

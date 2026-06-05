@@ -17,8 +17,12 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 export async function GET(request) {
-  const auth = request.headers.get('authorization')
-  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Require CRON_SECRET — never run unauthenticated even if the env var is missing.
+  const secret = process.env.CRON_SECRET
+  if (!secret) {
+    return new NextResponse('CRON_SECRET not configured', { status: 500 })
+  }
+  if (request.headers.get('authorization') !== `Bearer ${secret}`) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
@@ -52,7 +56,8 @@ export async function GET(request) {
       } else {
         skipped++
       }
-    } catch {
+    } catch (err) {
+      console.error(`[cron] sync failed for profile ${profile.id}:`, err?.message ?? err)
       skipped++
     }
   }

@@ -45,7 +45,7 @@ export async function POST(request) {
   }
 
   const healthUserId = body?.data?.healthUserId
-  if (!healthUserId) {
+  if (typeof healthUserId !== 'string' || !healthUserId.trim()) {
     // Malformed/unknown payload — ack so Google doesn't retry for 7 days.
     return new Response(null, { status: 204 })
   }
@@ -63,8 +63,9 @@ export async function POST(request) {
     try {
       // Webhook fires on new data, so a short window is enough.
       await syncUserMetrics(supabase, profile, { days: 7 })
-    } catch {
+    } catch (err) {
       // Ack anyway — retries are for delivery failures, not our processing errors.
+      console.error(`[webhook] sync failed for ${healthUserId}:`, err?.message ?? err)
     }
   }
 

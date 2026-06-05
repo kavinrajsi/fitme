@@ -19,7 +19,12 @@ export async function refreshGoogleToken(refreshToken) {
       refresh_token: refreshToken,
     }),
   })
-  if (!response.ok) return null
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '')
+    // invalid_grant = refresh token revoked/expired (e.g. 7-day unverified-app limit).
+    console.error('[google-auth] token refresh failed:', response.status, detail.slice(0, 200))
+    return null
+  }
   const data = await response.json()
   return data.access_token ? data : null
 }

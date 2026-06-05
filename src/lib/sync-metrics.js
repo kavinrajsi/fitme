@@ -24,7 +24,12 @@ export async function syncUserMetrics(
 
   step('Refreshing the Google Health access token')
   const token = await getValidHealthAccessToken(profile, service)
-  if (!token) return { ok: false, reason: 'no_token', rows: 0, metrics: [] }
+  if (!token) {
+    // A stored refresh token that no longer works ⇒ the user must reconnect (vs.
+    // never having connected at all).
+    const reason = profile.google_health_refresh_token ? 'reconnect_required' : 'no_token'
+    return { ok: false, reason, rows: 0, metrics: [] }
+  }
 
   // Capture the stable healthUserId once so webhook notifications can map to this user.
   if (!profile.google_health_user_id) {

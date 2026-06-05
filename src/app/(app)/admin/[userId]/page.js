@@ -40,8 +40,11 @@ const fmtDateTime = (value) =>
   value ? new Date(value).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'
 const dash = (value, suffix = '') => (value == null ? '—' : `${value}${suffix}`)
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export default async function AdminUserPage({ params }) {
   const { userId } = await params
+  if (!UUID_RE.test(userId)) notFound()
 
   const supabase = await createClient()
   const {
