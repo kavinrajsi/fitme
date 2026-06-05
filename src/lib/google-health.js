@@ -208,12 +208,13 @@ export async function getDailyMetrics(token, days = 90) {
   const start = isoDate(-(days - 1))
   const end = isoDate(1)
 
-  const [stepsD, calD, distD, hrD, sleepD] = await Promise.all([
+  const [stepsD, calD, distD, rhrD, sleepD, hydD] = await Promise.all([
     dailyRollUp(token, 'steps', start, end),
     dailyRollUp(token, 'active-energy-burned', start, end),
     dailyRollUp(token, 'distance', start, end),
-    dailyRollUp(token, 'heart-rate', start, end),
+    listPoints(token, 'daily-resting-heart-rate', 200),
     listSleep(token, days),
+    listPoints(token, 'hydration-log', 200),
   ])
 
   const byDate = {}
@@ -225,6 +226,7 @@ export async function getDailyMetrics(token, days = 90) {
       distance_km: 0,
       sleep_min: null,
       resting_hr: null,
+      hydration_ml: null,
     })
 
   for (const pt of stepsD?.rollupDataPoints ?? []) {
@@ -239,10 +241,13 @@ export async function getDailyMetrics(token, days = 90) {
     const k = pointDate(pt)
     if (k) row(k).distance_km = Math.round((Number(pt.distance?.millimetersSum ?? 0) / 1e6) * 100) / 100
   }
-  for (const pt of hrD?.rollupDataPoints ?? []) {
-    const k = pointDate(pt)
-    const min = pt.heartRate?.beatsPerMinuteMin
-    if (k && min != null) row(k).resting_hr = Math.round(min)
+  // Resting heart rate — the dedicated daily type (real RHR, not a proxy). List only;
+  // value at dailyRestingHeartRate.beatsPerMinute, keyed by its civil date.
+  for (const pt of rhrD?.dataPoints ?? []) {
+    const v = pt.dailyRestingHeartRate
+    if (v?.beatsPerMinute == null || !v.date?.year || Number(v.date.year) < 2000) continue
+    const k = `${v.date.year}-${String(v.date.month).padStart(2, '0')}-${String(v.date.day).padStart(2, '0')}`
+    row(k).resting_hr = Math.round(Number(v.beatsPerMinute))
   }
 
   // Sleep sessions → minutes per night, keyed by the IST date the user woke up.
@@ -256,6 +261,20 @@ export async function getDailyMetrics(token, days = 90) {
     const k = new Date(new Date(endT).getTime() + IST_OFFSET_MS).toISOString().slice(0, 10)
     const r = row(k)
     r.sleep_min = (r.sleep_min ?? 0) + mins
+  }
+
+  // Hydration (nutrition scope) — sum logged volume per day → ml. Session type; the
+  // volume/date field shape is parsed defensively, pending real-data confirmation.
+  for (const pt of hydD?.dataPoints ?? []) {
+    const h = pt.hydrationLog
+    if (!h) continue
+    const ml = Number(h.volumeMilliliters ?? h.milliliters ?? h.volume ?? 0)
+    if (!(ml > 0)) continue
+    const t = h.interval?.endTime ?? h.interval?.startTime ?? h.sampleTime?.physicalTime
+    const k = t ? new Date(new Date(t).getTime() + IST_OFFSET_MS).toISOString().slice(0, 10) : null
+    if (!k) continue
+    const r = row(k)
+    r.hydration_ml = (r.hydration_ml ?? 0) + ml
   }
 
   return Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date))

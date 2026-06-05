@@ -22,6 +22,8 @@ const HEALTH_SCOPES = [
   'https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly',
   // sleep duration
   'https://www.googleapis.com/auth/googlehealth.sleep.readonly',
+  // hydration (water intake) — hydration-log data type
+  'https://www.googleapis.com/auth/googlehealth.nutrition.readonly',
 ].join(' ')
 
 export async function GET(request) {
