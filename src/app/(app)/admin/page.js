@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { ADMIN_EMAIL } from '@/lib/constants'
+import { TestPushButton } from '@/components/test-push-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,9 +105,12 @@ export default async function AdminPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
-        <p className="text-muted-foreground text-sm">All users and their Google Health data</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
+          <p className="text-muted-foreground text-sm">All users and their Google Health data</p>
+        </div>
+        <TestPushButton />
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
