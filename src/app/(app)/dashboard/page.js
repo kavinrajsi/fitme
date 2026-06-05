@@ -13,6 +13,7 @@ import {
   GaugeIcon,
   WindIcon,
   HeartIcon,
+  ZapIcon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
@@ -58,7 +59,9 @@ export default async function DashboardPage({ searchParams }) {
     supabase.from('profiles').select('daily_step_goal').eq('id', user.id).maybeSingle(),
     supabase
       .from('daily_metrics')
-      .select('date, steps, active_min, resting_hr, hydration_ml, vo2_max, spo2, hrv_ms')
+      .select(
+        'date, steps, active_min, resting_hr, hydration_ml, vo2_max, spo2, hrv_ms, total_calories, hr_avg, hr_min, hr_max'
+      )
       .eq('user_id', user.id),
     getUserDetails(),
   ])
@@ -93,6 +96,10 @@ export default async function DashboardPage({ searchParams }) {
   const spo2 = latest('spo2')
   const hrv = latest('hrv_ms')
   const activeMin = (dailyMetrics ?? []).find((metric) => metric.date === dkey(0))?.active_min ?? null
+  const totalCalories = latest('total_calories')
+  const heartRateRow = [...(dailyMetrics ?? [])]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .find((metric) => metric.hr_avg != null)
 
   const series = []
   let chartMax = 0
@@ -182,6 +189,24 @@ export default async function DashboardPage({ searchParams }) {
             icon={<DropletIcon className="size-4" />}
             foot="Water intake"
             note={hydrationMl != null ? 'Most recent day' : 'Reconnect to enable'}
+          />
+          <Metric
+            label="Total calories"
+            value={totalCalories != null ? `${totalCalories.toLocaleString()} kcal` : '—'}
+            icon={<ZapIcon className="size-4" />}
+            foot="Total burned"
+            note="Most recent"
+          />
+          <Metric
+            label="Heart rate"
+            value={heartRateRow?.hr_avg != null ? `${Math.round(heartRateRow.hr_avg)} bpm` : '—'}
+            icon={<HeartIcon className="size-4" />}
+            foot="Average"
+            note={
+              heartRateRow?.hr_min != null && heartRateRow?.hr_max != null
+                ? `${heartRateRow.hr_min}–${heartRateRow.hr_max} bpm range`
+                : 'Most recent'
+            }
           />
         </div>
       </div>

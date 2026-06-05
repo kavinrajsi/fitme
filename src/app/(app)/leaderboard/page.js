@@ -1,6 +1,6 @@
 /**
  * /leaderboard — ranks all users by total steps for the selected window. Tabs
- * (Today / 7D / 30D, ?period=, default 7D) switch which window loads.
+ * (Today / 7D / 30D, ?period=, default Today) switch which window loads.
  *
  * daily_metrics + profiles are RLS "own-row only", so the ranking is built with the
  * service-role client server-side. Only leaderboard-safe fields are surfaced
@@ -38,7 +38,7 @@ const PERIODS = [
 
 export default async function LeaderboardPage({ searchParams }) {
   const { period: periodParam } = await searchParams
-  const period = PERIODS.find((option) => option.key === periodParam) ?? PERIODS[1] // default 7D
+  const period = PERIODS.find((option) => option.key === periodParam) ?? PERIODS[0] // default Today
 
   const supabase = await createClient()
   const {

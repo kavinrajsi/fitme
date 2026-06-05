@@ -62,7 +62,7 @@ export default async function AdminUserPage({ params }) {
       service
         .from('daily_metrics')
         .select(
-          'date, steps, calories, distance_km, resting_hr, vo2_max, spo2, hrv_ms, sleep_min, hydration_ml, active_min'
+          'date, steps, calories, total_calories, distance_km, resting_hr, hr_avg, vo2_max, spo2, hrv_ms, sleep_min, hydration_ml, active_min'
         )
         .eq('user_id', userId)
         .order('date', { ascending: false }),
@@ -167,8 +167,10 @@ export default async function AdminUserPage({ params }) {
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Steps</TableHead>
                   <TableHead className="text-right">Cal</TableHead>
+                  <TableHead className="text-right">Total cal</TableHead>
                   <TableHead className="text-right">Km</TableHead>
                   <TableHead className="text-right">RHR</TableHead>
+                  <TableHead className="text-right">HR avg</TableHead>
                   <TableHead className="text-right">VO₂</TableHead>
                   <TableHead className="text-right">SpO₂</TableHead>
                   <TableHead className="text-right">HRV</TableHead>
@@ -185,8 +187,10 @@ export default async function AdminUserPage({ params }) {
                       {(day.steps ?? 0).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{dash(day.calories)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{dash(day.total_calories)}</TableCell>
                     <TableCell className="text-right tabular-nums">{dash(day.distance_km)}</TableCell>
                     <TableCell className="text-right tabular-nums">{dash(day.resting_hr)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{dash(day.hr_avg)}</TableCell>
                     <TableCell className="text-right tabular-nums">{dash(day.vo2_max)}</TableCell>
                     <TableCell className="text-right tabular-nums">{dash(day.spo2)}</TableCell>
                     <TableCell className="text-right tabular-nums">{dash(day.hrv_ms)}</TableCell>

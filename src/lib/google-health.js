@@ -47,6 +47,27 @@ async function dailyRollUp(token, dataType, startDate, endDate) {
   return response.json()
 }
 
+function addDays(dateStr, n) {
+  const date = new Date(dateStr + 'T00:00:00Z')
+  date.setUTCDate(date.getUTCDate() + n)
+  return date.toISOString().slice(0, 10)
+}
+
+// Some rollups cap the query window (e.g. heart-rate / total-calories at 14 days).
+// Paginate the [start, end) range in <= chunkDays windows and merge the points.
+async function chunkedRollUp(token, dataType, start, end, chunkDays = 14) {
+  const rollupDataPoints = []
+  let cursor = start
+  while (cursor < end) {
+    const next = addDays(cursor, chunkDays)
+    const windowEnd = next < end ? next : end
+    const data = await dailyRollUp(token, dataType, cursor, windowEnd)
+    if (data?.rollupDataPoints) rollupDataPoints.push(...data.rollupDataPoints)
+    cursor = windowEnd
+  }
+  return { rollupDataPoints }
+}
+
 // GET list of individual data points for a data type (used where dailyRollUp is
 // unsupported, e.g. height).
 async function listPoints(token, dataType, pageSize = 50) {
@@ -269,18 +290,21 @@ export async function getDailyMetrics(token, days = 90) {
   const start = isoDate(-(days - 1))
   const end = isoDate(1)
 
-  const [stepsD, calD, distD, rhrD, sleepD, hydD, amD, vo2D, spo2D, hrvD] = await Promise.all([
-    dailyRollUp(token, 'steps', start, end),
-    dailyRollUp(token, 'active-energy-burned', start, end),
-    dailyRollUp(token, 'distance', start, end),
-    listPoints(token, 'daily-resting-heart-rate', 200),
-    listSleep(token, days),
-    listPoints(token, 'hydration-log', 200),
-    listPoints(token, 'active-minutes', 1000),
-    listPoints(token, 'daily-vo2-max', 200),
-    listPoints(token, 'daily-oxygen-saturation', 200),
-    listPoints(token, 'daily-heart-rate-variability', 200),
-  ])
+  const [stepsD, calD, distD, totalCalD, hrD, rhrD, sleepD, hydD, amD, vo2D, spo2D, hrvD] =
+    await Promise.all([
+      dailyRollUp(token, 'steps', start, end),
+      dailyRollUp(token, 'active-energy-burned', start, end),
+      dailyRollUp(token, 'distance', start, end),
+      chunkedRollUp(token, 'total-calories', start, end),
+      chunkedRollUp(token, 'heart-rate', start, end),
+      listPoints(token, 'daily-resting-heart-rate', 200),
+      listSleep(token, days),
+      listPoints(token, 'hydration-log', 200),
+      listPoints(token, 'active-minutes', 1000),
+      listPoints(token, 'daily-vo2-max', 200),
+      listPoints(token, 'daily-oxygen-saturation', 200),
+      listPoints(token, 'daily-heart-rate-variability', 200),
+    ])
 
   const byDate = {}
   const row = (dateKey) =>
@@ -289,6 +313,10 @@ export async function getDailyMetrics(token, days = 90) {
       steps: 0,
       calories: 0,
       distance_km: 0,
+      total_calories: null,
+      hr_avg: null,
+      hr_min: null,
+      hr_max: null,
       sleep_min: null,
       resting_hr: null,
       hydration_ml: null,
@@ -310,6 +338,21 @@ export async function getDailyMetrics(token, days = 90) {
   for (const point of calD?.rollupDataPoints ?? []) {
     const dateKey = pointDate(point)
     if (dateKey) row(dateKey).calories = Math.round(Number(point.activeEnergyBurned?.kcalSum ?? 0))
+  }
+  for (const point of totalCalD?.rollupDataPoints ?? []) {
+    const dateKey = pointDate(point)
+    if (dateKey && point.totalCalories?.kcalSum != null) {
+      row(dateKey).total_calories = Math.round(Number(point.totalCalories.kcalSum))
+    }
+  }
+  for (const point of hrD?.rollupDataPoints ?? []) {
+    const dateKey = pointDate(point)
+    const heartRate = point.heartRate
+    if (!dateKey || !heartRate) continue
+    if (heartRate.beatsPerMinuteAvg != null)
+      row(dateKey).hr_avg = Math.round(Number(heartRate.beatsPerMinuteAvg) * 10) / 10
+    if (heartRate.beatsPerMinuteMin != null) row(dateKey).hr_min = Math.round(Number(heartRate.beatsPerMinuteMin))
+    if (heartRate.beatsPerMinuteMax != null) row(dateKey).hr_max = Math.round(Number(heartRate.beatsPerMinuteMax))
   }
   for (const point of distD?.rollupDataPoints ?? []) {
     const dateKey = pointDate(point)
