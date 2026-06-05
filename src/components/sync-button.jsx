@@ -4,7 +4,7 @@
  * Header "Sync" button. Opens a panel that streams live progress from POST /api/sync
  * and then shows the synced results (totals + the most recent days).
  */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,16 @@ export function SyncButton() {
   const [steps, setSteps] = useState([])
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+
+  // Lock background page scroll while the sheet is open.
+  useEffect(() => {
+    if (!open) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [open])
 
   async function runSync() {
     setOpen(true)
