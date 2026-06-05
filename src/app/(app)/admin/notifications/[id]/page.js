@@ -63,7 +63,7 @@ export default async function AdminNotificationPage({ params }) {
       .maybeSingle(),
     service
       .from('notification_recipients')
-      .select('user_id, endpoint, status, created_at')
+      .select('user_id, endpoint, device, status, created_at')
       .eq('notification_id', id)
       .order('status', { ascending: true }),
   ])
@@ -114,6 +114,7 @@ export default async function AdminNotificationPage({ params }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
+                    <TableHead>Device</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>When</TableHead>
                   </TableRow>
@@ -128,6 +129,9 @@ export default async function AdminNotificationPage({ params }) {
                           <div className="text-muted-foreground truncate text-xs">
                             {profile?.email ?? recipient.user_id ?? 'unknown'}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">
+                          {recipient.device ?? '—'}
                         </TableCell>
                         <TableCell>
                           <Badge variant={recipient.status === 'sent' ? 'outline' : 'secondary'}>
