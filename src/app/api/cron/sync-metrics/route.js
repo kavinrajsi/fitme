@@ -35,7 +35,7 @@ export async function GET(request) {
   const { data: profiles, error } = await supabase
     .from('profiles')
     .select(
-      'id, google_health_access_token, google_health_refresh_token, google_health_token_expires_at'
+      'id, google_health_access_token, google_health_refresh_token, google_health_token_expires_at, health_data_backfilled_at'
     )
     .not('google_health_refresh_token', 'is', null)
 
@@ -49,10 +49,18 @@ export async function GET(request) {
 
   for (const profile of profiles ?? []) {
     try {
-      const result = await syncUserMetrics(supabase, profile, { days, fullHistory: true })
+      // Full multi-year history backfill runs ONCE per user (then incremental).
+      const fullHistory = !profile.health_data_backfilled_at
+      const result = await syncUserMetrics(supabase, profile, { days, fullHistory })
       if (result.ok && result.rows > 0) {
         users++
         rows += result.rows
+        if (fullHistory && result.historyDays > 0) {
+          await supabase
+            .from('profiles')
+            .update({ health_data_backfilled_at: new Date().toISOString() })
+            .eq('id', profile.id)
+        }
       } else {
         skipped++
       }

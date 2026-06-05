@@ -2,12 +2,12 @@
  * /leaderboard — ranks all users by total steps for the selected window. Tabs
  * (Today / 7D / 30D, ?period=, default Today) switch which window loads.
  *
- * daily_metrics + profiles are RLS "own-row only", so the ranking is built with the
- * service-role client server-side. Only leaderboard-safe fields are surfaced
- * (display name, avatar, step total) — never emails or tokens.
+ * daily_metrics + profiles are RLS "own-row only", so the cross-user ranking is
+ * aggregated by the leaderboard_since() security-definer SQL function — only
+ * leaderboard-safe fields (display name, avatar, step total) are returned.
  */
 import { createClient } from '@/lib/supabase/server'
-import { createServiceClient } from '@/lib/supabase/service'
+import { dkey, istMonthStart } from '@/lib/date-utils'
 import {
   Card,
   CardContent,
@@ -45,36 +45,18 @@ export default async function LeaderboardPage({ searchParams }) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const service = createServiceClient()
-  const istNow = Date.now() + 5.5 * 3600 * 1000
-  const istDate = new Date(istNow)
-  // "This month" = from the 1st of the current (IST) calendar month; otherwise a
-  // rolling N-day window.
-  const since = period.month
-    ? new Date(Date.UTC(istDate.getUTCFullYear(), istDate.getUTCMonth(), 1))
-        .toISOString()
-        .slice(0, 10)
-    : new Date(istNow - (period.days - 1) * 86400000).toISOString().slice(0, 10)
+  // "This month" = from the 1st of the current IST month; otherwise a rolling
+  // N-day window. Aggregation happens in Postgres, ordered by total desc.
+  const since = period.month ? istMonthStart() : dkey(period.days - 1)
+  const { data: rows } = await supabase.rpc('leaderboard_since', { since_date: since })
 
-  const [{ data: metrics }, { data: profiles }] = await Promise.all([
-    service.from('daily_metrics').select('user_id, steps').gte('date', since),
-    service.from('profiles').select('id, full_name, avatar_url'),
-  ])
-
-  const stepsByUser = {}
-  for (const metric of metrics ?? []) {
-    stepsByUser[metric.user_id] = (stepsByUser[metric.user_id] ?? 0) + (metric.steps ?? 0)
-  }
-
-  const ranked = (profiles ?? [])
-    .map((profile) => ({
-      id: profile.id,
-      name: profile.full_name ?? 'Anonymous',
-      avatar: profile.avatar_url,
-      steps: stepsByUser[profile.id] ?? 0,
-    }))
-    .sort((first, second) => second.steps - first.steps)
-    .map((entry, i) => ({ ...entry, rank: i + 1 }))
+  const ranked = (rows ?? []).map((row, i) => ({
+    id: row.id,
+    name: row.full_name ?? 'Anonymous',
+    avatar: row.avatar_url,
+    steps: Number(row.total_steps) || 0,
+    rank: i + 1,
+  }))
 
   const shown = ranked.filter((entry) => entry.steps > 0 || entry.id === user.id)
   const anySteps = ranked.some((entry) => entry.steps > 0)
