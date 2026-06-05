@@ -140,6 +140,67 @@ function pointDate(point) {
 }
 
 /**
+ * Full daily step history (beyond the 90-day rollup cap) by paginating the step
+ * rollup in 90-day chunks back `months` months. Returns [{ date, steps }].
+ */
+export async function getStepHistory(token, months = 24) {
+  const totalDays = months * 30
+  const stepsByDate = {}
+  for (let offsetDays = totalDays; offsetDays >= 90; offsetDays -= 90) {
+    const data = await dailyRollUp(
+      token,
+      'steps',
+      isoDate(-offsetDays),
+      isoDate(-(offsetDays - 90))
+    )
+    for (const point of data?.rollupDataPoints ?? []) {
+      const dateKey = pointDate(point)
+      if (dateKey) stepsByDate[dateKey] = Number(point.steps?.countSum ?? 0)
+    }
+  }
+  return Object.entries(stepsByDate).map(([date, steps]) => ({ date, steps }))
+}
+
+/**
+ * Intraday hourly step buckets for the last `days` days, from the step LIST data
+ * (steps.interval.civilStartTime + steps.count). Returns [{ day, hour, steps }].
+ */
+export async function getHourlySteps(token, days = 14) {
+  const since = isoDate(-(days - 1))
+  const params = new URLSearchParams({ pageSize: '5000' })
+  params.set('filter', `steps.interval.end_time >= "${since}T00:00:00Z"`)
+  let response = await fetch(`${HEALTH_API}/steps/dataPoints?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    // Filter unsupported — fall back to an unfiltered page and clip client-side.
+    response = await fetch(`${HEALTH_API}/steps/dataPoints?pageSize=5000`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    })
+    if (!response.ok) return []
+  }
+  const data = await response.json()
+
+  const buckets = {}
+  for (const point of data.dataPoints ?? []) {
+    const civilStart = point.steps?.interval?.civilStartTime
+    const count = Number(point.steps?.count ?? 0)
+    if (!civilStart?.date?.year || Number(civilStart.date.year) < 2000 || count <= 0) continue
+    const day = `${civilStart.date.year}-${String(civilStart.date.month).padStart(2, '0')}-${String(civilStart.date.day).padStart(2, '0')}`
+    if (day < since) continue
+    const hour = civilStart.time?.hours ?? 0
+    const bucketKey = `${day}|${hour}`
+    buckets[bucketKey] = (buckets[bucketKey] ?? 0) + count
+  }
+  return Object.entries(buckets).map(([bucketKey, steps]) => {
+    const [day, hour] = bucketKey.split('|')
+    return { day, hour: Number(hour), steps }
+  })
+}
+
+/**
  * Daily step counts for the last `days` days from the Google Health API.
  * Requires the googlehealth.activity_and_fitness.readonly scope.
  *
@@ -357,7 +418,7 @@ function titleCase(text) {
  * distanceMillimeters}. source_id is the trailing id of the dataPoint `name`.
  */
 export async function getWorkouts(token, days = 90) {
-  const data = await listPoints(token, 'exercise', 300)
+  const data = await listPoints(token, 'exercise', 1000)
   if (!data) return []
 
   const cutoff = Date.now() - days * 86400000

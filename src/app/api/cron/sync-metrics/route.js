@@ -45,7 +45,7 @@ export async function GET(request) {
 
   for (const profile of profiles ?? []) {
     try {
-      const result = await syncUserMetrics(supabase, profile, { days })
+      const result = await syncUserMetrics(supabase, profile, { days, fullHistory: true })
       if (result.ok && result.rows > 0) {
         users++
         rows += result.rows

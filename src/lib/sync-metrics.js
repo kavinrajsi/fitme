@@ -7,9 +7,19 @@
  * webhook mapping). `onStep` is an optional progress callback for the streaming UI.
  */
 import { getValidHealthAccessToken } from '@/lib/google-auth'
-import { getDailyMetrics, getHealthUserId, getWorkouts } from '@/lib/google-health'
+import {
+  getDailyMetrics,
+  getHealthUserId,
+  getWorkouts,
+  getStepHistory,
+  getHourlySteps,
+} from '@/lib/google-health'
 
-export async function syncUserMetrics(service, profile, { days = 90, onStep } = {}) {
+export async function syncUserMetrics(
+  service,
+  profile,
+  { days = 90, onStep, fullHistory = false } = {}
+) {
   const step = (message) => onStep?.(message)
 
   step('Refreshing the Google Health access token')
@@ -39,9 +49,9 @@ export async function syncUserMetrics(service, profile, { days = 90, onStep } = 
     if (error) return { ok: false, reason: 'upsert_error', rows: 0, metrics }
   }
 
-  // Workout sessions → workouts table (dedup on the source data-point id).
+  // All workout sessions → workouts table (dedup on the source data-point id).
   step('Fetching workouts')
-  const workouts = await getWorkouts(token, days)
+  const workouts = await getWorkouts(token, 1825)
   if (workouts.length) {
     const now = new Date().toISOString()
     await service
@@ -52,5 +62,43 @@ export async function syncUserMetrics(service, profile, { days = 90, onStep } = 
       )
   }
 
-  return { ok: true, rows: metrics.length, metrics, workouts: workouts.length }
+  // Intraday hourly steps (recent window) → steps_hourly table.
+  step('Fetching hourly steps')
+  const hourly = await getHourlySteps(token, 14)
+  if (hourly.length) {
+    const now = new Date().toISOString()
+    await service
+      .from('steps_hourly')
+      .upsert(
+        hourly.map((bucket) => ({ user_id: profile.id, ...bucket, updated_at: now })),
+        { onConflict: 'user_id,day,hour' }
+      )
+  }
+
+  // Full daily step history (older than the 90-day window) — steps only, partial
+  // upsert that leaves other daily_metrics columns untouched.
+  let historyDays = 0
+  if (fullHistory) {
+    step('Backfilling full step history')
+    const history = await getStepHistory(token, 24)
+    if (history.length) {
+      const now = new Date().toISOString()
+      await service
+        .from('daily_metrics')
+        .upsert(
+          history.map((day) => ({ user_id: profile.id, ...day, updated_at: now })),
+          { onConflict: 'user_id,date' }
+        )
+      historyDays = history.length
+    }
+  }
+
+  return {
+    ok: true,
+    rows: metrics.length,
+    metrics,
+    workouts: workouts.length,
+    hourly: hourly.length,
+    historyDays,
+  }
 }
