@@ -7,17 +7,9 @@
 import { useEffect, useState } from 'react'
 import { BellIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { subscribeAndSave } from '@/lib/push-client'
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const raw = atob(base64)
-  const out = new Uint8Array(raw.length)
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i)
-  return out
-}
 
 export function NotificationsToggle() {
   const [status, setStatus] = useState('loading') // loading | unsupported | denied | off | on
@@ -46,18 +38,8 @@ export function NotificationsToggle() {
         setStatus(permission === 'denied' ? 'denied' : 'off')
         return
       }
-      const registration = await navigator.serviceWorker.register('/sw.js')
-      await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID),
-      })
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription),
-      })
-      setStatus(response.ok ? 'on' : 'off')
+      const ok = await subscribeAndSave(VAPID)
+      setStatus(ok ? 'on' : 'off')
     } catch {
       setStatus('off')
     } finally {

@@ -110,7 +110,15 @@ export default async function AdminPage() {
           <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
           <p className="text-muted-foreground text-sm">All users and their Google Health data</p>
         </div>
-        <TestPushButton />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/notifications"
+            className="text-sm font-medium underline-offset-4 hover:underline"
+          >
+            Notification log
+          </Link>
+          <TestPushButton />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
