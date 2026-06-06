@@ -26,15 +26,17 @@ export function lastFour(raw) {
 
 /**
  * Resolve a presented bearer token to its owner. Uses the service-role client
- * (no session on MCP requests). Returns `{ userId }` for a valid, non-revoked
- * token, or null. Bumps `last_used_at` best-effort (never blocks the request).
+ * (no session on MCP/REST requests). Returns `{ userId, scopes }` for a valid,
+ * non-revoked token, or null — `scopes` is the token's granted access (e.g.
+ * `['read']` or `['read','write']`, defaulting to read-only). Bumps `last_used_at`
+ * best-effort (never blocks the request).
  */
 export async function resolveToken(service, raw) {
   if (!raw || !raw.startsWith(PREFIX)) return null
 
   const { data, error } = await service
     .from('api_tokens')
-    .select('id, user_id')
+    .select('id, user_id, scopes')
     .eq('token_hash', hashToken(raw))
     .is('revoked_at', null)
     .maybeSingle()
@@ -48,5 +50,5 @@ export async function resolveToken(service, raw) {
     .eq('id', data.id)
     .then(() => {}, () => {})
 
-  return { userId: data.user_id }
+  return { userId: data.user_id, scopes: data.scopes ?? ['read'] }
 }

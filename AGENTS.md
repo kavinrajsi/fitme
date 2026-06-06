@@ -65,13 +65,22 @@ full architecture, data model, and env vars. Key conventions to follow:
 - Sync also writes `steps_raw` + `steps_hourly`; `src/lib/heatmap.js` (`buildHeatmap`)
   aggregates the hourly rows into the weekday×hour activity grid.
 
-## AI / MCP
+## AI / MCP / public API
 - A remote **MCP server** lives at `src/app/api/mcp/[transport]/route.js` (endpoint
   `/api/mcp/mcp`, built on `mcp-handler`). Users mint per-user API tokens on `/ai`
   (`src/lib/api-tokens.js` hashes them into `api_tokens`).
-- Every tool authenticates with the user's Bearer token and reads **only that user's**
-  rows via the service client. Tools are **read-only** — do not add write/admin tools to
-  the MCP surface.
+- The **public REST API** is under `src/app/api/v1/*` (Bearer token via
+  `src/lib/api-auth.js` → `authenticateApiRequest`, JSON envelope/CORS in
+  `src/lib/api-response.js`, docs page `/developers`, spec `/api/v1/openapi.json`).
+- **Both surfaces share one source of truth: `src/lib/fitness-data.js`** (getProfileSummary,
+  getDailyMetrics, getStepStats, getStreaks, getHeatmap, getHourlySteps, getWorkouts,
+  getLeaderboard, getFullExport). Add data accessors there, not inline, so MCP + REST stay
+  in sync.
+- Everything authenticates with the user's Bearer token and reads **only that user's** rows
+  via the service client. Tokens carry **scopes** (`api_tokens.scopes`, default `{read}`);
+  reads need `read`, the single write (`PATCH /api/v1/me` → daily step goal) needs `write`.
+  Keep the surface read-mostly — don't expose other users' private rows or admin actions.
+  `resolveToken` is the seam where a future OAuth layer would also resolve tokens.
 
 ## Working agreements
 - Commit/push only when asked; end commit messages with the `Co-Authored-By` trailer.

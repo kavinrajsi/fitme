@@ -11,6 +11,7 @@ import { createApiToken, revokeApiToken } from '@/app/actions/api-tokens'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 
 // Format a timestamp as an IST date (the app is IST throughout).
 function fmtDate(value) {
@@ -56,8 +57,10 @@ export function ApiTokenManager({ tokens = [], connectUrl }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Generate a token and add it to your AI tool as a Bearer token. It can read your
-        fitness data through the MCP server. Treat it like a password.
+        Generate a token and send it as a Bearer token to the REST API (<code>/api/v1</code>)
+        or an AI tool over MCP. A <strong>read-only</strong> token is safe to hand to another
+        developer building on your data; <strong>read &amp; write</strong> also lets them
+        change your daily step goal. Treat it like a password.
       </p>
 
       {/* Existing tokens */}
@@ -68,7 +71,10 @@ export function ApiTokenManager({ tokens = [], connectUrl }) {
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">
                   {token.name || 'Token'}{' '}
-                  <span className="font-mono text-muted-foreground">…{token.last_four}</span>
+                  <span className="font-mono text-muted-foreground">…{token.last_four}</span>{' '}
+                  <Badge variant="outline" className="ml-1 align-middle">
+                    {token.scopes?.includes('write') ? 'read & write' : 'read only'}
+                  </Badge>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Added {fmtDate(token.created_at)}
@@ -108,6 +114,18 @@ export function ApiTokenManager({ tokens = [], connectUrl }) {
         <div className="space-y-2">
           <Label htmlFor="token_name">Token name (optional)</Label>
           <Input id="token_name" name="name" placeholder="Claude Desktop" maxLength={60} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="token_scope">Access</Label>
+          <select
+            id="token_scope"
+            name="scope"
+            defaultValue="read"
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="read">Read only (recommended)</option>
+            <option value="write">Read &amp; write</option>
+          </select>
         </div>
         <Button type="submit" className="w-full" disabled={pending}>
           <KeyIcon /> {pending ? 'Generating…' : 'Generate token'}

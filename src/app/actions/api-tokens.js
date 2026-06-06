@@ -21,6 +21,8 @@ export async function createApiToken(_prevState, formData) {
   if (!user) return { ok: false, error: 'Not signed in.' }
 
   const name = (formData.get('name') || '').toString().trim().slice(0, 60) || null
+  // Read-only by default; only grant write when explicitly requested (read implies the rest).
+  const scopes = formData.get('scope') === 'write' ? ['read', 'write'] : ['read']
   const raw = generateToken()
 
   const { error } = await supabase.from('api_tokens').insert({
@@ -28,6 +30,7 @@ export async function createApiToken(_prevState, formData) {
     token_hash: hashToken(raw),
     name,
     last_four: lastFour(raw),
+    scopes,
   })
   if (error) return { ok: false, error: 'Could not create token.' }
 

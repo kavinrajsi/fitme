@@ -32,7 +32,7 @@ export default async function AiPage() {
 
   const { data: tokens } = await supabase
     .from('api_tokens')
-    .select('id, name, last_four, created_at, last_used_at')
+    .select('id, name, last_four, scopes, created_at, last_used_at')
     .eq('user_id', user.id)
     .is('revoked_at', null)
     .order('created_at', { ascending: false })
@@ -41,7 +41,9 @@ export default async function AiPage() {
   // localhost/127.* gets http, everything else https.
   const host = (await headers()).get('host')
   const proto = host?.startsWith('localhost') || host?.startsWith('127.') ? 'http' : 'https'
-  const mcpUrl = host ? `${proto}://${host}/api/mcp/mcp` : '/api/mcp/mcp'
+  const origin = host ? `${proto}://${host}` : ''
+  const mcpUrl = host ? `${origin}/api/mcp/mcp` : '/api/mcp/mcp'
+  const apiBase = host ? `${origin}/api/v1` : '/api/v1'
 
   return (
     <div className="mx-auto w-full max-w-md space-y-6 px-4 py-8">
@@ -71,6 +73,32 @@ export default async function AiPage() {
         </CardHeader>
         <CardContent>
           <McpConnectGuide connectUrl={mcpUrl} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Developer API</CardTitle>
+          <CardDescription>Build an app on your data with a plain REST API</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            Send a token as <code>Authorization: Bearer …</code> to the REST endpoints under:
+          </p>
+          <code className="block truncate rounded bg-muted px-2 py-1 font-mono text-xs">
+            {apiBase}
+          </code>
+          <p>
+            See the{' '}
+            <a href="/developers" className="font-medium text-foreground underline">
+              developer docs
+            </a>{' '}
+            for every endpoint, or grab the{' '}
+            <a href="/api/v1/openapi.json" className="font-medium text-foreground underline">
+              OpenAPI spec
+            </a>
+            .
+          </p>
         </CardContent>
       </Card>
     </div>

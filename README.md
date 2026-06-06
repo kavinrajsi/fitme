@@ -38,6 +38,10 @@ Next.js 16 + Supabase.
   `/api/mcp/mcp` then exposes **7 read-only tools** (`get_profile`, `get_daily_metrics`,
   `get_step_stats`, `get_streaks_and_achievements`, `get_activity_heatmap`, `get_workouts`,
   `get_leaderboard`) so Claude can read **only that user's** data.
+- **Developer REST API (`/api/v1`)** — the same data over plain HTTP for building apps.
+  Tokens carry **scopes** (`read` / `write`); a read-only token is safe to hand to another
+  developer. Bearer auth, open CORS, an OpenAPI spec at `/api/v1/openapi.json`, and human
+  docs at **`/developers`**. Writes are limited to the user's own `dailyStepGoal`.
 - **Admin** (`/admin`, gated to `ADMIN_EMAIL`, `noindex`) — all users, per-user drill-down,
   device list, and a push **notification log**.
 - **Sync** three ways: a daily cron, an on-demand streaming Sync button, and a Google
@@ -142,6 +146,7 @@ one-time backfill, 14 days incrementally). After a sync, `notifyTopMovers()` che
 | `POST /api/webhooks/health` | Google Health change webhook (`GOOGLE_HEALTH_WEBHOOK_SECRET`) |
 | `GET /api/og/leaderboard` | branded top-5 image (`?period=`, `?format=story\|post\|square\|wide`) |
 | `POST/GET /api/mcp/mcp` | remote MCP server, per-user Bearer token, read-only tools |
+| `GET/PATCH /api/v1/*` | developer REST API (Bearer token + scopes): `me`, `daily-metrics`, `steps/stats`, `steps/hourly`, `heatmap`, `streaks`, `workouts`, `leaderboard`, `export`, `openapi.json` |
 | `POST /api/push/{subscribe,unsubscribe,test}` | Web Push subscription + admin test broadcast |
 
 ## Deployment
