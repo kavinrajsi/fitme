@@ -145,6 +145,9 @@ and the rolled-up `steps_hourly` buckets that feed the activity heatmap (365 day
 one-time backfill, 14 days incrementally). After a sync, `notifyTopMovers()` checks the
 7-day leaderboard and pushes alerts.
 
+Full endpoint reference with **sample requests + responses**: [docs/API.md](docs/API.md)
+(human docs also live at `/developers`; machine spec at `/api/v1/openapi.json`).
+
 ### API routes
 
 | Route | Purpose |
