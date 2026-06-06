@@ -138,3 +138,46 @@ export async function syncUserMetrics(
     historyDays,
   }
 }
+
+// Sync every Google-Health-connected profile in turn (sequentially, to stay within the
+// function's compute/rate limits). Full multi-year history backfills ONCE per user, then
+// flips profiles.health_data_backfilled_at so it only runs that first time. Returns a
+// { users, rows, skipped } tally. Requires a service-role client.
+export async function syncAllConnectedUsers(service, { days = 7 } = {}) {
+  const { data: profiles, error } = await service
+    .from('profiles')
+    .select(
+      'id, google_health_access_token, google_health_refresh_token, google_health_token_expires_at, health_data_backfilled_at'
+    )
+    .not('google_health_refresh_token', 'is', null)
+
+  if (error) throw new Error(error.message)
+
+  let users = 0
+  let rows = 0
+  let skipped = 0
+
+  for (const profile of profiles ?? []) {
+    try {
+      const fullHistory = !profile.health_data_backfilled_at
+      const result = await syncUserMetrics(service, profile, { days, fullHistory })
+      if (result.ok && result.rows > 0) {
+        users++
+        rows += result.rows
+        if (fullHistory && result.historyDays > 0) {
+          await service
+            .from('profiles')
+            .update({ health_data_backfilled_at: new Date().toISOString() })
+            .eq('id', profile.id)
+        }
+      } else {
+        skipped++
+      }
+    } catch (err) {
+      console.error(`[sync] failed for profile ${profile.id}:`, err?.message ?? err)
+      skipped++
+    }
+  }
+
+  return { users, rows, skipped }
+}

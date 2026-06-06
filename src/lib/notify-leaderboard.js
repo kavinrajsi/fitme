@@ -5,8 +5,37 @@
  */
 import { dkey } from '@/lib/date-utils'
 import { sendPushToAll } from '@/lib/push'
+import { getLeaderboard } from '@/lib/fitness-data'
 
 const THRESHOLD = 100 // ignore trivial bumps
+
+const TOP_TITLES = {
+  yesterday: "🏆 Yesterday's leaderboard",
+  today: "🏆 Today's leaderboard",
+}
+
+// Broadcast the day's top 3 to everyone (opt-in). `period` is 'yesterday' (morning) or
+// 'today' (night). Reuses getLeaderboard so the ranking matches the /leaderboard page,
+// and always sends — even on an empty day. Best-effort: never throws into the caller.
+export async function notifyLeaderboardTop(service, { period }) {
+  try {
+    const key = period === 'today' ? 'today' : 'yesterday'
+    const { ranking } = await getLeaderboard(service, null, { period: key })
+    const top3 = (ranking ?? []).slice(0, 3)
+    const body = top3.length
+      ? top3
+          .map((row) => `${row.rank}. ${row.name ?? 'Someone'} — ${Number(row.totalSteps).toLocaleString()}`)
+          .join('\n')
+      : 'No steps logged yet — get moving!'
+    return await sendPushToAll(
+      { title: TOP_TITLES[key], body, url: `/leaderboard?period=${key}` },
+      { source: `leaderboard-${key}` }
+    )
+  } catch (err) {
+    console.error('[notify] notifyLeaderboardTop failed:', err?.message ?? err)
+    return { sent: 0 }
+  }
+}
 
 // Compare each current top-4 mover's 7-day step total against the last snapshot and
 // push a "gained N steps" alert when the gain clears THRESHOLD, then store the new

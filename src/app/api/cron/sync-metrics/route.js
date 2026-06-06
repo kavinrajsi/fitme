@@ -11,7 +11,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { syncUserMetrics } from '@/lib/sync-metrics'
+import { syncAllConnectedUsers } from '@/lib/sync-metrics'
 import { notifyTopMovers } from '@/lib/notify-leaderboard'
 
 export const dynamic = 'force-dynamic'
@@ -37,42 +37,11 @@ export async function GET(request) {
   )
 
   const supabase = createServiceClient()
-  const { data: profiles, error } = await supabase
-    .from('profiles')
-    .select(
-      'id, google_health_access_token, google_health_refresh_token, google_health_token_expires_at, health_data_backfilled_at'
-    )
-    .not('google_health_refresh_token', 'is', null)
-
-  if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
-  }
-
-  let users = 0
-  let rows = 0
-  let skipped = 0
-
-  for (const profile of profiles ?? []) {
-    try {
-      // Full multi-year history backfill runs ONCE per user (then incremental).
-      const fullHistory = !profile.health_data_backfilled_at
-      const result = await syncUserMetrics(supabase, profile, { days, fullHistory })
-      if (result.ok && result.rows > 0) {
-        users++
-        rows += result.rows
-        if (fullHistory && result.historyDays > 0) {
-          await supabase
-            .from('profiles')
-            .update({ health_data_backfilled_at: new Date().toISOString() })
-            .eq('id', profile.id)
-        }
-      } else {
-        skipped++
-      }
-    } catch (err) {
-      console.error(`[cron] sync failed for profile ${profile.id}:`, err?.message ?? err)
-      skipped++
-    }
+  let users, rows, skipped
+  try {
+    ;({ users, rows, skipped } = await syncAllConnectedUsers(supabase, { days }))
+  } catch (err) {
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500 })
   }
 
   await notifyTopMovers(supabase)
