@@ -1,11 +1,12 @@
 /**
- * GET /api/cron/notify-leaderboard — daily leaderboard push to all opt-in subscribers.
+ * GET /api/cron/notify-leaderboard — leaderboard push to all opt-in subscribers.
  *
- * Two scheduled runs (see vercel.json), both authorized via CRON_SECRET (Vercel sends
- * `Authorization: Bearer <CRON_SECRET>` automatically):
- *   - 08:30 IST  ?period=yesterday          → top 3 of yesterday
- *   - 21:00 IST  ?period=today&sync=1        → top 3 of today (re-syncs first, since the
- *                                              main sync only runs each morning)
+ * Authorized via CRON_SECRET (Vercel sends `Authorization: Bearer <CRON_SECRET>`
+ * automatically). Scheduled run (see vercel.json):
+ *   - 21:00 IST  ?period=today&sync=1   → top 3 of today (re-syncs first, since the
+ *                                         main sync only runs each morning)
+ * The morning push (yesterday's top 3) rides on the 07:30 sync cron instead of a
+ * separate schedule, but `?period=yesterday` is still supported for manual triggers.
  *
  * Uses the service-role client (bypasses RLS) — there's no user session.
  */

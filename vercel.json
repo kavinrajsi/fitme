@@ -5,10 +5,6 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/notify-leaderboard?period=yesterday",
-      "schedule": "0 3 * * *"
-    },
-    {
       "path": "/api/cron/notify-leaderboard?period=today&sync=1",
       "schedule": "30 15 * * *"
     }
