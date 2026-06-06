@@ -1,6 +1,8 @@
 /**
- * GET /api/og/leaderboard?period=today|7d|month — a branded 1200×630 image of the top 5
- * for the window, for the leaderboard Share button. Public, returns only the
+ * GET /api/og/leaderboard?period=today|7d|month&format=wide|story
+ *   - wide  → 1200×630 (link-preview / OG size)
+ *   - story → 1080×1920 (Instagram Story / 9:16, used by the Share button)
+ * A branded image of the top 5 for the window. Public; returns only the
  * leaderboard-safe top 5 (display name + step total).
  */
 import { ImageResponse } from 'next/og'
@@ -21,12 +23,39 @@ const PERIODS = {
 }
 
 export async function GET(request) {
-  const periodKey = new URL(request.url).searchParams.get('period')
-  const period = PERIODS[periodKey] ?? PERIODS.month
+  const params = new URL(request.url).searchParams
+  const period = PERIODS[params.get('period')] ?? PERIODS.month
+  const portrait = params.get('format') === 'story'
 
   const service = createServiceClient()
   const { data: rows } = await service.rpc('leaderboard_since', { since_date: period.since() })
   const top = (rows ?? []).filter((r) => Number(r.total_steps) > 0).slice(0, 5)
+
+  // Layout constants per format.
+  const s = portrait
+    ? { w: 1080, h: 1920, pad: 90, logo: 120, brand: 56, title: 96, period: 40, rank: 64, name: 56, steps: 52, rowPad: '34px 40px', radius: 28, gap: 28, foot: 32 }
+    : { w: 1200, h: 630, pad: 64, logo: 64, brand: 44, title: 0, period: 30, rank: 44, name: 40, steps: 40, rowPad: '20px 28px', radius: 18, gap: 22, foot: 24 }
+
+  const Header = portrait ? (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+      <svg width={s.logo} height={s.logo} viewBox="0 0 100 100">
+        <path d={LOGO_PATH} fill={BRAND} />
+      </svg>
+      <div style={{ display: 'flex', marginTop: 28, fontSize: s.brand, color: '#aaa' }}>KyaReFitting</div>
+      <div style={{ display: 'flex', fontSize: s.title, fontWeight: 800, lineHeight: 1.05 }}>Leaderboard</div>
+      <div style={{ display: 'flex', marginTop: 8, fontSize: s.period, color: BRAND }}>{period.label}</div>
+    </div>
+  ) : (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <svg width={s.logo} height={s.logo} viewBox="0 0 100 100" style={{ marginRight: 20 }}>
+        <path d={LOGO_PATH} fill={BRAND} />
+      </svg>
+      <div style={{ display: 'flex', fontSize: s.brand, fontWeight: 700 }}>KyaReFitting</div>
+      <div style={{ display: 'flex', marginLeft: 'auto', fontSize: s.period, color: BRAND }}>
+        Leaderboard · {period.label}
+      </div>
+    </div>
+  )
 
   return new ImageResponse(
     (
@@ -38,23 +67,24 @@ export async function GET(request) {
           height: '100%',
           background: '#0a0a0a',
           color: '#ffffff',
-          padding: '64px',
+          padding: s.pad,
           fontFamily: 'sans-serif',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <svg width="64" height="64" viewBox="0 0 100 100" style={{ marginRight: 20 }}>
-            <path d={LOGO_PATH} fill={BRAND} />
-          </svg>
-          <div style={{ display: 'flex', fontSize: 44, fontWeight: 700 }}>KyaReFitting</div>
-          <div style={{ display: 'flex', marginLeft: 'auto', fontSize: 30, color: BRAND }}>
-            Leaderboard · {period.label}
-          </div>
-        </div>
+        {Header}
 
-        <div style={{ display: 'flex', flexDirection: 'column', marginTop: 56, gap: 22 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            marginTop: portrait ? 80 : 56,
+            gap: s.gap,
+            flex: portrait ? 1 : 0,
+            justifyContent: portrait ? 'center' : 'flex-start',
+          }}
+        >
           {top.length === 0 ? (
-            <div style={{ display: 'flex', fontSize: 36, color: '#888' }}>No steps yet.</div>
+            <div style={{ display: 'flex', fontSize: s.name, color: '#888' }}>No steps yet.</div>
           ) : (
             top.map((row, i) => (
               <div
@@ -62,26 +92,18 @@ export async function GET(request) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  background: i === 0 ? 'rgba(253,217,65,0.12)' : 'rgba(255,255,255,0.04)',
-                  borderRadius: 18,
-                  padding: '20px 28px',
+                  background: i === 0 ? 'rgba(253,217,65,0.14)' : 'rgba(255,255,255,0.04)',
+                  borderRadius: s.radius,
+                  padding: s.rowPad,
                 }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    width: 64,
-                    fontSize: 44,
-                    fontWeight: 800,
-                    color: i === 0 ? BRAND : '#777',
-                  }}
-                >
+                <div style={{ display: 'flex', width: portrait ? 90 : 64, fontSize: s.rank, fontWeight: 800, color: i === 0 ? BRAND : '#777' }}>
                   {i + 1}
                 </div>
-                <div style={{ display: 'flex', flex: 1, fontSize: 40, fontWeight: 600 }}>
+                <div style={{ display: 'flex', flex: 1, fontSize: s.name, fontWeight: 600 }}>
                   {row.full_name ?? 'Anonymous'}
                 </div>
-                <div style={{ display: 'flex', fontSize: 40, fontWeight: 700, color: BRAND }}>
+                <div style={{ display: 'flex', fontSize: s.steps, fontWeight: 700, color: BRAND }}>
                   {Number(row.total_steps).toLocaleString()}
                 </div>
               </div>
@@ -89,11 +111,11 @@ export async function GET(request) {
           )}
         </div>
 
-        <div style={{ display: 'flex', marginTop: 'auto', fontSize: 24, color: '#666' }}>
+        <div style={{ display: 'flex', marginTop: portrait ? 0 : 'auto', fontSize: s.foot, color: '#666' }}>
           Total steps · kyarefitting
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    { width: s.w, height: s.h }
   )
 }

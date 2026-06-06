@@ -11,7 +11,7 @@ export function LeaderboardShareButton({ period }) {
   async function share() {
     setBusy(true)
     try {
-      const response = await fetch(`/api/og/leaderboard?period=${period}`)
+      const response = await fetch(`/api/og/leaderboard?period=${period}&format=story`)
       if (!response.ok) throw new Error('image failed')
       const blob = await response.blob()
       const file = new File([blob], 'kyarefitting-leaderboard.png', { type: 'image/png' })
