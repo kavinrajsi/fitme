@@ -9,8 +9,11 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Logo } from '@/components/logo'
 
+// Dynamic because the page reads the auth session to redirect signed-in users.
 export const dynamic = 'force-dynamic'
 
+// Static marketing copy. PRINCIPLES = the "what we believe" cards;
+// FEATURES = the "what you get" cards. Edit here to change the home page content.
 const PRINCIPLES = [
   {
     title: 'Clarity',

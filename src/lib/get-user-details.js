@@ -19,6 +19,10 @@ import { getPeopleDetails } from '@/lib/google-people'
 
 const STALE_MS = 12 * 60 * 60 * 1000 // 12 hours
 
+// Build the home page's profile object for the signed-in user, refreshing the
+// Google-sourced fields (height/weight/age/gender/birthday) only when the cache on the
+// profile row is older than STALE_MS, then deriving BMI + its WHO category. Returns
+// null when nobody is signed in.
 export async function getUserDetails() {
   const supabase = await createClient()
   const {

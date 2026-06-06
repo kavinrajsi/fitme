@@ -2,6 +2,9 @@
  * Dashboard — shadcn cards + trend badges (dashboard-01 style) wired to the user's
  * real Google Health data: section cards, an activity chart with a range toggle, and
  * achievements. Steps from daily_metrics; goal from profiles.daily_step_goal.
+ *
+ * force-dynamic server component, own-row RLS. ?range=7d|30d|90d (default 30d) drives
+ * the activity chart and the HR/sleep trend windows; dates are IST via dkey().
  */
 import {
   TrendingUpIcon,
@@ -47,9 +50,12 @@ const RANGES = [
   { key: '90d', label: '90D', days: 90 },
 ]
 
+// Percent change current-vs-previous; +100% when there's no prior value to compare.
 const pct = (current, previous) =>
   previous > 0 ? Math.round(((current - previous) / previous) * 100) : current > 0 ? 100 : 0
 
+// Loads the user's goal + all daily/hourly metrics in one round-trip, then derives
+// every stat card, trend series, and heatmap from those rows (no per-card queries).
 export default async function DashboardPage({ searchParams }) {
   const { range: rangeParam } = await searchParams
   const range = RANGES.find((option) => option.key === rangeParam) ?? RANGES[1]
@@ -83,8 +89,10 @@ export default async function DashboardPage({ searchParams }) {
   ])
 
   const goal = profile?.daily_step_goal ?? 10000
+  // Streaks + achievements are derived purely from the daily rows vs. the goal.
   const game = computeGamification(dailyMetrics ?? [], goal)
 
+  // Index steps by IST day-key so the sum/latest helpers can look up by days-ago.
   const stepsByDate = {}
   for (const metric of dailyMetrics ?? []) stepsByDate[metric.date] = metric.steps ?? 0
   const sum = (fromDaysAgo, toDaysAgo) => {
@@ -117,6 +125,7 @@ export default async function DashboardPage({ searchParams }) {
     .sort((a, b) => b.date.localeCompare(a.date))
     .find((metric) => metric.hr_avg != null)
 
+  // Build the activity series oldest→newest across the selected range, filling gaps with 0.
   const series = []
   let chartTotal = 0
   for (let i = range.days - 1; i >= 0; i--) {
@@ -348,6 +357,7 @@ export default async function DashboardPage({ searchParams }) {
         </CardContent>
       </Card>
 
+      {/* Incremental Health consent (separate OAuth) — shown only when not yet connected */}
       {!details?.healthConnected && (
         <a href="/auth/google/health" className={cn(buttonVariants(), 'w-full')}>
           Connect Google Health
@@ -357,6 +367,8 @@ export default async function DashboardPage({ searchParams }) {
   )
 }
 
+// Reusable stat card. Shows a trend badge when `trend` is given, else the `icon`;
+// renders an optional progress bar. Used for every tile in the grids above.
 function Metric({ label, value, trend, icon, progress, foot, note }) {
   return (
     <Card className="gap-2">

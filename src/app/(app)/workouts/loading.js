@@ -1,3 +1,4 @@
+/** Loading skeleton for /workouts — placeholder rows for the sessions table. */
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 

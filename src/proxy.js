@@ -4,7 +4,10 @@
  *
  * Responsibilities:
  * - Refreshes the Supabase session cookie on every request so tokens stay alive.
- * - Redirects already-authenticated users away from /signin.
+ * - Redirects already-authenticated users away from the public entry points (/ and
+ *   /signin) to /dashboard.
+ * - Redirects signed-out users hitting a protected path (see `protectedPaths` below)
+ *   to /signin.
  *
  * Note: getUser() must be called so the session is validated/refreshed; the
  * supabaseResponse (with any refreshed cookies) must be the one returned.

@@ -21,6 +21,7 @@ export function ActivityChartCard({ data, total, avg, rangeKey, ranges }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
+  // Push the new range to the URL (the server refetches); scroll:false keeps the viewport put.
   const select = (key) => {
     if (key === rangeKey) return
     startTransition(() => router.push(`/dashboard?range=${key}`, { scroll: false }))

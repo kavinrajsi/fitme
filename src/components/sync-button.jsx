@@ -27,6 +27,9 @@ export function SyncButton() {
     }
   }, [open])
 
+  // Open the sheet and stream the sync. The endpoint emits newline-delimited JSON
+  // (one event per line); we buffer partial lines across chunks and apply each event:
+  // `step` appends progress, `error`/`reconnect` surface failures, `done` is the summary.
   async function runSync() {
     setOpen(true)
     setRunning(true)
@@ -46,6 +49,7 @@ export function SyncButton() {
         if (done) break
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
+        // keep the trailing partial line for the next chunk
         buffer = lines.pop()
         for (const line of lines) {
           if (!line.trim()) continue
@@ -73,6 +77,8 @@ export function SyncButton() {
         {running ? 'Syncing…' : 'Sync'}
       </Button>
 
+      {/* Portal to <body>: a backdrop-blur ancestor would otherwise become the containing
+          block for this position:fixed overlay and mis-anchor it. */}
       {open &&
         createPortal(
           <div

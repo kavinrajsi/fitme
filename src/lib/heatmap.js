@@ -12,6 +12,9 @@ const WEEKDAY_NAMES = [
   'Saturdays',
 ]
 
+// Sum the hourly step rows into the 7×24 weekday×hour grid the UI colours, and derive
+// the "most active time" insight from the busiest hour-of-day and weekday. `max` scales
+// the cell colour; `has` is false (and `insight` null) when there's no data at all.
 export function buildHeatmap(rows) {
   const grid = Array.from({ length: 7 }, () => new Array(24).fill(0))
   const byHour = new Array(24).fill(0)

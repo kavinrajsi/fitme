@@ -7,6 +7,8 @@
 
 import { dkey, addDays } from '@/lib/date-utils'
 
+// Badge catalogue, evaluated in order. Each `test` reads the derived `stats` below,
+// so adding an achievement only needs a row here plus (if new) a stat to test against.
 const ACHIEVEMENTS = [
   { id: 'first', name: 'First Steps', icon: '👟', test: (stats) => stats.total > 0 },
   { id: '10k', name: '10k Day', icon: '⚡', test: (stats) => stats.bestDay >= 10000 },
@@ -19,6 +21,10 @@ const ACHIEVEMENTS = [
   { id: 'million', name: 'Million Steps', icon: '🥇', test: (stats) => stats.total >= 1000000 },
 ]
 
+// Crunch the raw daily-step rows into the dashboard's gamification block: today's
+// progress vs goal, current and best goal streaks, best single day / 7-day total,
+// lifetime total, and the earned/unearned achievement list. Returns the flat stats
+// spread alongside { achievements }.
 export function computeGamification(rows, goal = 10000) {
   const byDate = {}
   for (const row of rows ?? []) byDate[row.date] = row.steps ?? 0

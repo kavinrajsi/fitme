@@ -1,9 +1,10 @@
 /**
  * /leaderboard — ranks all users by total steps for the selected window. Tabs
- * (Today / 7D / 30D, ?period=, default Today) switch which window loads.
+ * (Today / Yesterday / 7D / This month, ?period=, default Today) switch which
+ * [since, until] window loads.
  *
  * daily_metrics + profiles are RLS "own-row only", so the cross-user ranking is
- * aggregated by the leaderboard_since() security-definer SQL function — only
+ * aggregated by the leaderboard_between() security-definer SQL function — only
  * leaderboard-safe fields (display name, avatar, step total) are returned.
  */
 import Link from 'next/link'
@@ -40,6 +41,8 @@ const PERIODS = [
   { key: 'month', label: 'This month', since: () => istMonthStart(), until: () => dkey(0) },
 ]
 
+// Resolves the period window, runs the cross-user RPC, then ranks rows by step total.
+// Always keeps the signed-in user visible even at zero steps so they can find themselves.
 export default async function LeaderboardPage({ searchParams }) {
   const { period: periodParam } = await searchParams
   const period = PERIODS.find((option) => option.key === periodParam) ?? PERIODS[0] // default Today
@@ -61,6 +64,7 @@ export default async function LeaderboardPage({ searchParams }) {
     new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
   const dateLabel = since === until ? fmtDay(since) : `${fmtDay(since)} – ${fmtDay(until)}`
 
+  // RPC returns rows pre-sorted by steps desc; rank is just the 1-based position.
   const ranked = (rows ?? []).map((row, i) => ({
     id: row.id,
     name: row.full_name ?? 'Anonymous',
@@ -69,6 +73,7 @@ export default async function LeaderboardPage({ searchParams }) {
     rank: i + 1,
   }))
 
+  // Hide everyone at zero steps, except yourself (so you always see your own row).
   const shown = ranked.filter((entry) => entry.steps > 0 || entry.id === user.id)
   const anySteps = ranked.some((entry) => entry.steps > 0)
 
@@ -126,6 +131,7 @@ export default async function LeaderboardPage({ searchParams }) {
               {shown.map((entry) => {
                 const isYou = entry.id === user.id
                 return (
+                  /* Highlight your own row so it stands out in the ranking */
                   <TableRow key={entry.id} className={cn(isYou && 'bg-muted/50')}>
                     <TableCell className="pl-4 text-center font-medium text-muted-foreground tabular-nums">
                       {entry.rank}

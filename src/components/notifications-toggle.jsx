@@ -15,6 +15,8 @@ export function NotificationsToggle() {
   const [status, setStatus] = useState('loading') // loading | unsupported | denied | off | on
   const [busy, setBusy] = useState(false)
 
+  // Resolve the initial status: bail to unsupported/denied early, otherwise reflect whether
+  // a push subscription already exists for this device.
   useEffect(() => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !VAPID) {
       setStatus('unsupported')
@@ -30,6 +32,7 @@ export function NotificationsToggle() {
       .catch(() => setStatus('off'))
   }, [])
 
+  // Opt in: prompt for permission, then subscribe + persist via push-client.
   async function enable() {
     setBusy(true)
     try {
@@ -47,6 +50,7 @@ export function NotificationsToggle() {
     }
   }
 
+  // Opt out: drop the subscription server-side first, then unsubscribe the browser.
   async function disable() {
     setBusy(true)
     try {

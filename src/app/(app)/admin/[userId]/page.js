@@ -1,6 +1,10 @@
 /**
  * /admin/[userId] — full per-user detail (admin only, noindex). Shows the profile,
- * summary stats, and the complete daily metrics, workouts, and hourly step data.
+ * summary stats, devices, a daily-steps chart + when-active heatmap, and the complete
+ * daily metrics, workouts, hourly steps, and raw step-sample tables.
+ *
+ * force-dynamic, service-role reads (bypass RLS). UUID-guarded: a non-UUID or
+ * non-admin (or a missing profile) all fall through to notFound().
  */
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -36,6 +40,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 }
 
+// Short date and date+time formatters; timestamps render in IST (Asia/Kolkata).
 const fmtDate = (value) =>
   value ? new Date(value).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' }) : '—'
 const fmtDateTime = (value) =>
@@ -48,10 +53,14 @@ const fmtDateTime = (value) =>
         timeZone: 'Asia/Kolkata',
       })
     : '—'
+// Renders a value with an optional unit suffix, or an em dash when null/undefined.
 const dash = (value, suffix = '') => (value == null ? '—' : `${value}${suffix}`)
 
+// Guard the route param before using it in queries — bail early on anything not a UUID.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+// Pulls every table for one user in parallel (profile, daily metrics, workouts, hourly
+// steps, push devices, plus a raw-samples page and the oldest-sample timestamp for range).
 export default async function AdminUserPage({ params }) {
   const { userId } = await params
   if (!UUID_RE.test(userId)) notFound()
@@ -372,6 +381,7 @@ export default async function AdminUserPage({ params }) {
         </CardContent>
       </Card>
 
+      {/* Exact total via count:'exact'; the table itself shows only the latest 200 rows */}
       <Card>
         <CardHeader>
           <CardTitle>Raw step samples</CardTitle>
@@ -417,6 +427,7 @@ export default async function AdminUserPage({ params }) {
   )
 }
 
+// Small headline metric card for the summary row.
 function Stat({ label, value }) {
   return (
     <Card className="gap-1">

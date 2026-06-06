@@ -1,5 +1,10 @@
 'use client'
 
+/**
+ * Daily-steps area chart for the admin user-detail page (recharts via the shadcn chart
+ * primitives). Client component because recharts renders in the browser; expects
+ * chronological { date, steps } points.
+ */
 import { Activity } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 
@@ -24,11 +29,13 @@ const chartConfig = {
   },
 }
 
+// "Mon D" axis/tooltip label for a date-only value.
 const fmtDay = (value) =>
   value
     ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : ''
 
+// Card-wrapped step area chart; the description spans the first→last date in `data`.
 export function StepsAreaChart({ data }) {
   return (
     <Card>

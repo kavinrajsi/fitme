@@ -5,10 +5,12 @@ import { useState } from 'react'
 import { BellIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+// Rendered only on the admin screen; broadcasts a test push and reports the device count.
 export function TestPushButton() {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
 
+  // Fire the broadcast and surface "Sent to N device(s)" or a failure message.
   async function send() {
     setBusy(true)
     setStatus(null)

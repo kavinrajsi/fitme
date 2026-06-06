@@ -24,6 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+// Guard the [id] route param before querying with it.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 }
 
+// Date+time in IST (Asia/Kolkata), or an em dash when null.
 const fmtDateTime = (value) =>
   value
     ? new Date(value).toLocaleString('en-US', {
@@ -44,6 +46,9 @@ const fmtDateTime = (value) =>
       })
     : '—'
 
+// Admin-only detail for one broadcast: the message plus its per-device recipient list
+// (sent/failed status). Recipient rows carry only user_id, so names/emails are joined
+// in a second lookup.
 export default async function AdminNotificationPage({ params }) {
   const { id } = await params
   if (!UUID_RE.test(id)) notFound()
@@ -70,6 +75,7 @@ export default async function AdminNotificationPage({ params }) {
 
   if (!log) notFound()
 
+  // Resolve display names/emails for the recipients in one batched query.
   const list = recipients ?? []
   const userIds = [...new Set(list.map((r) => r.user_id).filter(Boolean))]
   const { data: profiles } = userIds.length

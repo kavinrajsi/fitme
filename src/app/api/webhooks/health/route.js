@@ -24,6 +24,9 @@ import { notifyTopMovers } from '@/lib/notify-leaderboard'
 
 export const dynamic = 'force-dynamic'
 
+// Check the shared secret, answer the verification handshake, then for a real
+// data-change notification resolve healthUserId -> profile and re-sync a short window.
+// Every non-handshake path returns 204 so Google stops retrying.
 export async function POST(request) {
   const secret = process.env.GOOGLE_HEALTH_WEBHOOK_SECRET
   const authorized = !!secret && request.headers.get('authorization') === secret

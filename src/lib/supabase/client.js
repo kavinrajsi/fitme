@@ -6,6 +6,8 @@
  */
 import { createBrowserClient } from '@supabase/ssr'
 
+// Return the browser client (anon key, own-row RLS). createBrowserClient is itself a
+// singleton, so calling this on every use is fine.
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,

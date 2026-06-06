@@ -19,6 +19,9 @@ import { notifyTopMovers } from '@/lib/notify-leaderboard'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+// Identify the caller from their session, then drive the sync inside a ReadableStream
+// so each progress step is flushed to the client as it happens (rather than buffering a
+// single response at the end). Every branch ends by closing the stream.
 export async function POST() {
   const supabase = await createClient()
   const {
@@ -28,6 +31,7 @@ export async function POST() {
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     async start(controller) {
+      // One NDJSON line per event — each enqueue is a flushed chunk to the client.
       const send = (event) => controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'))
       try {
         if (!user) {

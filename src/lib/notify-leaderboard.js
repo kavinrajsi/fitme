@@ -8,6 +8,9 @@ import { sendPushToAll } from '@/lib/push'
 
 const THRESHOLD = 100 // ignore trivial bumps
 
+// Compare each current top-4 mover's 7-day step total against the last snapshot and
+// push a "gained N steps" alert when the gain clears THRESHOLD, then store the new
+// totals for next time. Swallows all errors — sync must never fail because a push did.
 export async function notifyTopMovers(service) {
   try {
     const since = dkey(6) // last 7 days

@@ -6,6 +6,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
+// Validate the submitted goal (1,000–100,000 steps) and persist it to the signed-in
+// user's own profile row, then revalidate the views that render the goal ring.
 export async function saveStepGoal(formData) {
   const supabase = await createClient()
   const {

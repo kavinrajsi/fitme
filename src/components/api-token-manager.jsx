@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+// Format a timestamp as an IST date (the app is IST throughout).
 function fmtDate(value) {
   if (!value) return null
   return new Date(value).toLocaleDateString('en-IN', {
@@ -22,6 +23,7 @@ function fmtDate(value) {
   })
 }
 
+// Copy-to-clipboard button with a brief "Copied" confirmation.
 function CopyButton({ value }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -45,8 +47,10 @@ function CopyButton({ value }) {
   )
 }
 
+// `tokens` are the user's existing tokens (last-4 only); `connectUrl` is the MCP endpoint.
 export function ApiTokenManager({ tokens = [], connectUrl }) {
   const [state, formAction, pending] = useActionState(createApiToken, null)
+  // The full raw token comes back only in the create action's result — show it once.
   const created = state?.ok ? state.token : null
 
   return (

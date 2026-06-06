@@ -12,6 +12,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Exchange the OAuth `code` for a session, mirror the Google provider tokens +
+// identity onto the user's profile row, then redirect to `next`.
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -28,6 +30,7 @@ export async function GET(request) {
     return NextResponse.redirect(`${origin}/signin?error=auth_callback_failed`)
   }
 
+  // Only persist tokens when Google actually returned a provider token for this session.
   const { session, user } = data
   if (session?.provider_token && user) {
     const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()

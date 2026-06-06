@@ -9,6 +9,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+// Build a request-scoped SSR client bound to the incoming cookies, so queries run as
+// the signed-in user under RLS. Awaitable because Next.js 16's cookies() is async.
 export async function createClient() {
   const cookieStore = await cookies()
 

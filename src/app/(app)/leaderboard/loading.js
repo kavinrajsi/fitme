@@ -1,3 +1,4 @@
+/** Loading skeleton for /leaderboard — period tabs + a placeholder ranked list. */
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 

@@ -23,6 +23,12 @@ async function upsertChunked(service, table, rows, conflict, size = 1000) {
   }
 }
 
+// The single sync entry point (cron / manual / webhook). Pulls the user's Google
+// Health data and writes daily_metrics, workouts, steps_raw and steps_hourly. On
+// `fullHistory` it also backfills the full step history (the caller flips
+// profiles.health_data_backfilled_at so this only runs once per user). Returns a
+// result object: { ok, reason?, rows, metrics, ... }; `reason` is 'reconnect_required'
+// when a stale refresh token can't be refreshed and 'no_token' when none was stored.
 export async function syncUserMetrics(
   service,
   profile,

@@ -30,6 +30,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 }
 
+// Date+time in IST (Asia/Kolkata), or an em dash when null.
 const fmtDateTime = (value) =>
   value
     ? new Date(value).toLocaleString('en-US', {
@@ -41,6 +42,8 @@ const fmtDateTime = (value) =>
       })
     : '—'
 
+// Admin-only broadcast log: most recent 200 push notifications, newest first. Each row
+// links to /admin/notifications/[id] for the per-recipient delivery breakdown.
 export default async function AdminNotificationsPage() {
   const supabase = await createClient()
   const {

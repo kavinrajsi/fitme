@@ -1,3 +1,8 @@
+/**
+ * Terms of Service — static, read-only legal page (no auth, no data fetching).
+ * Covers the service scope, eligibility, the health-info / "not a medical device"
+ * disclaimer, acceptable use, third-party services, and liability limits.
+ */
 
 export const metadata = { title: 'Terms of Service — KyaReFitting aa' }
 

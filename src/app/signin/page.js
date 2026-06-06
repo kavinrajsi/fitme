@@ -2,9 +2,11 @@
  * Sign-in — styled with the shadcn login-03 block, adapted to Google-only auth
  * (no email/password or Apple, per the app's constraint).
  *
- * The Google button is a plain <a> (via Button asChild) so navigating to
- * /auth/google hits the Route Handler as a full document request.
- * Errors are surfaced via the `?error=` search param set by the callback route.
+ * The Google button is a plain <a> styled with `buttonVariants()` (the Button
+ * has no `asChild`) so navigating to /auth/google hits the Route Handler as a
+ * full document request rather than a client navigation.
+ * Errors are surfaced via the `?error=` search param set by the callback route
+ * (see ERROR_MESSAGES for the user-facing copy).
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -80,6 +82,7 @@ export default async function SignInPage({ searchParams }) {
   )
 }
 
+// Inline Google "G" mark; uses currentColor so it inherits the button's text color.
 function GoogleIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">

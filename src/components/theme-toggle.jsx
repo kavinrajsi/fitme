@@ -6,11 +6,14 @@ import { useTheme } from 'next-themes'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// The two segments of the pill toggle.
 const OPTIONS = [
   { key: 'light', label: 'Light', Icon: SunIcon },
   { key: 'dark', label: 'Dark', Icon: MoonIcon },
 ]
 
+// Segmented light/dark control. Gate on `mounted` so SSR and the first client
+// render agree on 'dark' and don't mismatch before next-themes reads the real value.
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)

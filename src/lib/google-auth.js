@@ -8,6 +8,9 @@
  */
 import { createClient } from '@/lib/supabase/server'
 
+// Exchange a stored refresh token for a fresh access token at Google's token endpoint.
+// Returns the full token response (access_token, expires_in, …) or null on failure —
+// notably invalid_grant, which means the refresh token is dead and the user must reconnect.
 export async function refreshGoogleToken(refreshToken) {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',

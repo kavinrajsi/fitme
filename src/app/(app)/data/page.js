@@ -1,7 +1,10 @@
 /**
- * /data — daily steps (last 90 days) read from public.daily_metrics, which a daily
- * cron syncs from the Google Health API. Prompts to connect Google Health when the
- * user hasn't, or explains the sync hasn't run yet when there are no rows.
+ * /data — daily steps read from public.daily_metrics, which a daily cron syncs from
+ * the Google Health API. Prompts to connect Google Health when the user hasn't, or
+ * explains the sync hasn't run yet when there are no rows.
+ *
+ * force-dynamic, own-row RLS. ?range=90d|year|all (default 90d) sets the row limit;
+ * ?day=YYYY-MM-DD expands that row into a 24h hourly breakdown from steps_hourly.
  */
 import { Fragment } from 'react'
 import Link from 'next/link'
@@ -36,9 +39,12 @@ const RANGES = [
   { key: 'all', label: 'All time', short: 'All', limit: null },
 ]
 
+// Lists daily steps for the chosen range; lazily fetches the hourly breakdown only
+// for the expanded day, so the common (collapsed) view stays a single table query.
 export default async function DataPage({ searchParams }) {
   const { range: rangeParam, day: dayParam } = await searchParams
   const range = RANGES.find((option) => option.key === rangeParam) ?? RANGES[0]
+  // Validate ?day before trusting it in a query; ignore anything not YYYY-MM-DD.
   const selectedDay = /^\d{4}-\d{2}-\d{2}$/.test(dayParam ?? '') ? dayParam : null
 
   const supabase = await createClient()
@@ -72,6 +78,7 @@ export default async function DataPage({ searchParams }) {
     steps: hourlyByHour[hour] ?? 0,
   }))
   const hasDayHourly = (dayHourly ?? []).length > 0
+  // Clicking the already-open day collapses it (drops ?day); otherwise opens that day.
   const hrefFor = (date) =>
     date === selectedDay ? `/data?range=${range.key}` : `/data?range=${range.key}&day=${date}`
   const total = days.reduce((runningTotal, day) => runningTotal + (day.steps ?? 0), 0)
@@ -198,6 +205,7 @@ export default async function DataPage({ searchParams }) {
   )
 }
 
+// Render a date-only string as "Mon D"; noon anchor avoids any UTC-vs-IST day shift.
 function formatDate(iso) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }

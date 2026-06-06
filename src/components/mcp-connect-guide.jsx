@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { CopyIcon, CheckIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+// Pre-formatted snippet with a copy-to-clipboard button in the corner.
 function CodeBlock({ code }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -40,6 +41,8 @@ function CodeBlock({ code }) {
 export function McpConnectGuide({ connectUrl }) {
   const url = connectUrl || 'https://your-domain/api/mcp/mcp'
 
+  // Two ready-to-paste setups, both attaching the personal token as a Bearer header:
+  // the Claude Code CLI one-liner, and a Claude Desktop config block (via mcp-remote).
   const cliCmd = `claude mcp add --transport http kyarefitting \\\n  ${url} \\\n  --header "Authorization: Bearer YOUR_TOKEN"`
 
   const desktopConfig = `{

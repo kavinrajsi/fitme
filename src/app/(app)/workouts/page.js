@@ -1,5 +1,7 @@
 /**
  * /workouts — the user's exercise sessions from Google Health (workouts table).
+ *
+ * force-dynamic, own-row RLS; a simple newest-first table capped at 100 rows.
  */
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -22,12 +24,14 @@ export const dynamic = 'force-dynamic'
 
 export const metadata = { title: 'Workouts — KyaReFitting aa' }
 
+// "Mon D" for a session's start timestamp, or an em dash when missing.
 function fmtDate(iso) {
   return iso
     ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : '—'
 }
 
+// Fetches the 100 most recent workout sessions for the signed-in user.
 export default async function WorkoutsPage() {
   const supabase = await createClient()
   const {

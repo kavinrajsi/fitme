@@ -26,6 +26,9 @@ const HEALTH_SCOPES = [
   'https://www.googleapis.com/auth/googlehealth.nutrition.readonly',
 ].join(' ')
 
+// Require a session, mint a CSRF state into an httpOnly cookie, then redirect the
+// browser to Google's consent screen for the Health-only scopes. The callback verifies
+// the state and exchanges the returned code for tokens.
 export async function GET(request) {
   const { origin } = new URL(request.url)
 

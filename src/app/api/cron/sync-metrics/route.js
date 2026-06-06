@@ -17,6 +17,9 @@ import { notifyTopMovers } from '@/lib/notify-leaderboard'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
+// Authorize the cron caller, then sync every Google-Health-connected profile in turn,
+// tallying users/rows touched (and skips) for the JSON summary. Runs sequentially to
+// stay within the function's compute/rate limits, and pushes leaderboard movers at the end.
 export async function GET(request) {
   // Require CRON_SECRET — never run unauthenticated even if the env var is missing.
   const secret = process.env.CRON_SECRET
@@ -27,6 +30,7 @@ export async function GET(request) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
+  // Clamp ?days into [1, 90] (Health rollup windows cap at 90d); default 7.
   const days = Math.min(
     Math.max(Number(new URL(request.url).searchParams.get('days')) || 7, 1),
     90

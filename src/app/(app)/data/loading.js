@@ -1,3 +1,4 @@
+/** Loading skeleton for /data — stat tiles + a placeholder daily-steps table. */
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 

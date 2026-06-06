@@ -1,3 +1,4 @@
+/** Loading skeleton for /profile — avatar header plus placeholder setting cards. */
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 

@@ -1,3 +1,4 @@
+/** Loading skeleton for the dashboard — mirrors the stat-card grids + chart blocks. */
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {

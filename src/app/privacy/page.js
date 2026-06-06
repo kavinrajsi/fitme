@@ -1,3 +1,8 @@
+/**
+ * Privacy Policy — static, read-only legal page (no auth, no data fetching).
+ * Documents what Google account / Google Health data is collected, how it is
+ * used and shared, the Google API Limited Use commitment, and how to delete data.
+ */
 
 export const metadata = { title: 'Privacy Policy — KyaReFitting aa' }
 

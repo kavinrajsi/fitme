@@ -1,6 +1,13 @@
+/**
+ * Help & FAQ — static, read-only support page (no auth, no data fetching).
+ * Renders the FAQ list below: connecting Google Health, troubleshooting empty
+ * steps/sleep, changing the step goal, syncing, leaderboard visibility, and
+ * account deletion.
+ */
 
 export const metadata = { title: 'Help — KyaReFitting aa' }
 
+// Question/answer pairs rendered as the page body; edit here to update the FAQ.
 const FAQ = [
   {
     q: 'What is KyaReFitting aa?',

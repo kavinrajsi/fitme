@@ -1,6 +1,10 @@
 /**
  * /ai — AI access via the Model Context Protocol. Generate, copy, and revoke
- * per-user API tokens that let an AI tool read your fitness data over MCP.
+ * per-user API tokens that let an AI tool read your fitness data over MCP, plus a
+ * "Connect to Claude" guide.
+ *
+ * force-dynamic, own-row RLS. Lists only active (non-revoked) tokens — by design
+ * only their last four digits are stored, so the full token is shown just once at mint.
  */
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
@@ -18,6 +22,8 @@ export const dynamic = 'force-dynamic'
 
 export const metadata = { title: 'AI — KyaReFitting aa' }
 
+// Loads the user's live tokens and derives the absolute MCP endpoint URL to hand to
+// the token manager + connect guide.
 export default async function AiPage() {
   const supabase = await createClient()
   const {
@@ -31,6 +37,8 @@ export default async function AiPage() {
     .is('revoked_at', null)
     .order('created_at', { ascending: false })
 
+  // Build the MCP URL from the request host so it's correct in any environment;
+  // localhost/127.* gets http, everything else https.
   const host = (await headers()).get('host')
   const proto = host?.startsWith('localhost') || host?.startsWith('127.') ? 'http' : 'https'
   const mcpUrl = host ? `${proto}://${host}/api/mcp/mcp` : '/api/mcp/mcp'

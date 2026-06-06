@@ -45,7 +45,9 @@ const NAV = [
 export function AppSidebar({ user, isAdmin = false, ...props }) {
   const pathname = usePathname()
   const { setOpenMobile } = useSidebar()
+  // On mobile the sidebar is an overlay; collapse it after navigating.
   const closeMobile = () => setOpenMobile(false)
+  // Admin link only for admins (gated upstream by ADMIN_EMAIL); appended after the base nav.
   const navItems = isAdmin ? [...NAV, { href: '/admin', label: 'Admin', icon: Shield }] : NAV
   return (
     <Sidebar {...props}>
@@ -64,6 +66,7 @@ export function AppSidebar({ user, isAdmin = false, ...props }) {
                 const Icon = item.icon
                 return (
                   <SidebarMenuItem key={item.href}>
+                    {/* base-nova has no asChild — `render` makes the button host a Next <Link>. */}
                     <SidebarMenuButton
                       isActive={pathname === item.href}
                       tooltip={item.label}
@@ -80,6 +83,7 @@ export function AppSidebar({ user, isAdmin = false, ...props }) {
         </SidebarGroup>
       </SidebarContent>
 
+      {/* Footer: signed-in identity, then sign-out via the server action. */}
       <SidebarFooter>
         <div className="flex items-center gap-2 px-1 py-1">
           <Avatar className="size-8">

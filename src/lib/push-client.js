@@ -2,6 +2,8 @@
  * Browser-side Web Push helpers shared by the auto-subscribe bootstrap and the
  * Profile toggle. Only call these in the browser.
  */
+// Decode a URL-safe base64 VAPID public key into the Uint8Array that
+// PushManager.subscribe expects as its applicationServerKey.
 export function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')

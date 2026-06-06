@@ -15,6 +15,9 @@ import { IST_OFFSET_MS, isoDate, civil, addDays, civilKey } from '@/lib/date-uti
 
 const HEALTH_API = 'https://health.googleapis.com/v4/users/me/dataTypes'
 
+// POST a dailyRollUp request: one aggregated point per IST civil day across
+// [startDate, endDate). Returns the parsed JSON (with rollupDataPoints) or null when
+// the API rejects it (e.g. 403 for a missing scope, or a window past the type's cap).
 async function dailyRollUp(token, dataType, startDate, endDate) {
   const response = await fetch(`${HEALTH_API}/${dataType}/dataPoints:dailyRollUp`, {
     method: 'POST',

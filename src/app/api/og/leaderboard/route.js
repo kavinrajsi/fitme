@@ -35,6 +35,9 @@ const FORMATS = {
   wide: { w: 1200, h: 630, kind: 'wide', s: { pad: 64, logo: 64, brand: 44, title: 0, period: 30, rank: 44, name: 40, steps: 40, rowPad: '20px 28px', radius: 18, gap: 22, marginTop: 56, foot: 24 } },
 }
 
+// Resolve period/format from the query (falling back to month/story), fetch the
+// window's leaderboard via the service client, and render a branded top-5 image with
+// next/og. No auth — output is limited to the public leaderboard-safe fields.
 export async function GET(request) {
   const params = new URL(request.url).searchParams
   const period = PERIODS[params.get('period')] ?? PERIODS.month
@@ -50,6 +53,7 @@ export async function GET(request) {
     since_date: since,
     until_date: until,
   })
+  // Drop zero-step entries so the board never shows padded/empty placeholders.
   const top = (rows ?? []).filter((r) => Number(r.total_steps) > 0).slice(0, 5)
 
   // Period label with its date(s), e.g. "Today · Jun 6" or "Last 7 days · May 31 – Jun 6".
@@ -58,6 +62,7 @@ export async function GET(request) {
   const dateLabel = since === until ? fmtDay(since) : `${fmtDay(since)} – ${fmtDay(until)}`
   const subtitle = `${period.label} · ${dateLabel}`
 
+  // Portrait targets stack logo/brand/title vertically; wide lays them out in a single row.
   const Header = portrait ? (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
       <svg width={s.logo} height={s.logo} viewBox="0 0 100 100">

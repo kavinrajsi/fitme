@@ -1,6 +1,10 @@
 /**
  * Authenticated shell — shadcn sidebar layout (AppSidebar + SidebarInset) with a
  * sticky header (sidebar trigger + Sync). Redirects to /signin when not signed in.
+ *
+ * force-dynamic by virtue of the per-request auth read; wraps every page under
+ * (app)/. Also mounts PushBootstrap (registers the service worker / push) and the
+ * mobile BottomNav.
  */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -13,6 +17,8 @@ import { Logo } from '@/components/logo'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 
+// Gates the whole authenticated area: resolves the signed-in user, builds the
+// sidebar identity, and decides whether the Sync button can be shown.
 export default async function AppLayout({ children }) {
   const supabase = await createClient()
   const {
@@ -20,6 +26,7 @@ export default async function AppLayout({ children }) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/signin')
 
+  // Sync is only meaningful once Google Health is connected (refresh token present).
   const { data: profile } = await supabase
     .from('profiles')
     .select('google_health_refresh_token')
@@ -50,6 +57,7 @@ export default async function AppLayout({ children }) {
           <Separator orientation="vertical" className="mr-1 hidden h-4 md:block" />
           <Logo className="size-5" />
           <span className="text-sm font-medium">KyaReFitting aa</span>
+          {/* Sync button only when Google Health is connected — nothing to sync otherwise */}
           {healthConnected && (
             <div className="ml-auto">
               <SyncButton />

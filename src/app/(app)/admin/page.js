@@ -33,14 +33,19 @@ export const metadata = {
   robots: { index: false, follow: false },
 }
 
+// Short "MMM D, YY" date, or an em dash when null.
 function fmtDate(value) {
   return value ? new Date(value).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' }) : '—'
 }
 
+// 0–23 hour index to a 12-hour clock label (e.g. 13 -> "1 PM"); used for the peak hour.
 function formatHour(hour) {
   return `${hour % 12 === 0 ? 12 : hour % 12} ${hour < 12 ? 'AM' : 'PM'}`
 }
 
+// Admin-only aggregate table. Service-role reads ALL users' rows (bypassing RLS), then
+// rolls them up per user in-memory: step totals, date range, latest RHR/VO₂, sleep/
+// hydration day counts, workout + hourly-bucket counts, and the per-user peak step hour.
 export default async function AdminPage() {
   const supabase = await createClient()
   const {
@@ -63,6 +68,7 @@ export default async function AdminPage() {
       service.from('steps_hourly').select('user_id, hour, steps'),
     ])
 
+  // Seed one accumulator per profile, then fold the metric/workout/hourly rows into it.
   const byUser = {}
   for (const profile of profiles ?? []) {
     byUser[profile.id] = {
@@ -107,6 +113,7 @@ export default async function AdminPage() {
     entry.hourly += 1
     entry.hourSums[bucket.hour] += bucket.steps ?? 0
   }
+  // Peak hour = the hour-of-day bucket with the most cumulative steps (null if none).
   for (const entry of Object.values(byUser)) {
     const peak = Math.max(...entry.hourSums)
     entry.peakHour = peak > 0 ? entry.hourSums.indexOf(peak) : null
@@ -175,6 +182,7 @@ export default async function AdminPage() {
                   const p = row.profile
                   return (
                     <TableRow key={p.id}>
+                      {/* Name cell links into the full per-user drill-down */}
                       <TableCell className="max-w-[14rem]">
                         <Link href={`/admin/${p.id}`} className="group block">
                           <div className="font-medium group-hover:underline">
@@ -232,6 +240,7 @@ export default async function AdminPage() {
   )
 }
 
+// Small headline metric card used in the summary row at the top of the admin page.
 function Stat({ label, value }) {
   return (
     <Card className="gap-1">

@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Footprints, Dumbbell, Trophy, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// The five tabs, left to right. (No conditional Admin tab here — that lives in the sidebar.)
 const NAV = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/data', label: 'Steps', icon: Footprints },
@@ -23,6 +24,7 @@ export function BottomNav() {
     <nav className="bg-background/95 fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       {NAV.map((item) => {
         const Icon = item.icon
+        // Highlight on exact match or any nested route (e.g. /leaderboard/123 keeps Ranks active).
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
         return (
           <Link

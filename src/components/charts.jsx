@@ -11,9 +11,11 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 
+// Shared axis/tooltip date formatter, e.g. "Jan 5".
 const fmtDay = (value) =>
   value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
 
+// Daily steps as a filled area; `data` is [{ date, steps }].
 export function StepsAreaChart({ data }) {
   return (
     <ChartContainer
@@ -43,6 +45,7 @@ export function StepsAreaChart({ data }) {
   )
 }
 
+// Intraday steps as bars; `data` is [{ label, steps }] per hour (axis labels every 4th).
 export function HourlyStepsChart({ data }) {
   return (
     <ChartContainer
@@ -59,6 +62,8 @@ export function HourlyStepsChart({ data }) {
   )
 }
 
+// Generic single-metric line (weight, heart rate, …); `dataKey` selects the series and
+// drives the --color-<dataKey> CSS var. Gaps are bridged with connectNulls.
 export function MetricTrendChart({ data, dataKey, label, color = 'var(--chart-2)' }) {
   return (
     <ChartContainer

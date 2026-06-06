@@ -20,6 +20,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Ask Supabase for the Google consent URL (sign-in scopes only) and redirect to it;
+// on failure bounce back to /signin with an error flag.
 export async function GET(request) {
   const { origin } = new URL(request.url)
   const supabase = await createClient()

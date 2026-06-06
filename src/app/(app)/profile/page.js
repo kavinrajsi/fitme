@@ -1,6 +1,10 @@
 /**
- * /profile — account details (from Google sign-in + Google Health + People), manual
- * height/weight entry, and Connect Google Health.
+ * /profile — account details (from Google sign-in + Google Health + People), the
+ * daily step goal form, Appearance (theme) + Notifications (push) toggles, and
+ * connect/reconnect Google Health.
+ *
+ * force-dynamic, own-row RLS. ?health=connected|connect_failed shows the result
+ * banner after returning from the incremental Health OAuth flow.
  */
 import { createClient } from '@/lib/supabase/server'
 import { getUserDetails } from '@/lib/get-user-details'
@@ -24,6 +28,8 @@ export const dynamic = 'force-dynamic'
 
 export const metadata = { title: 'Profile — KyaReFitting aa' }
 
+// Renders the account/settings screen. getUserDetails() merges the auth identity with
+// the synced Health/People profile (height, weight, BMI, age, gender, birthday).
 export default async function ProfilePage({ searchParams }) {
   const { health } = await searchParams
   const supabase = await createClient()
@@ -80,6 +86,7 @@ export default async function ProfilePage({ searchParams }) {
           <CardDescription>Sync steps, heart rate, sleep and more</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
+          {/* Result banner after returning from the /auth/google/health consent */}
           {health === 'connected' && (
             <p className="text-sm text-muted-foreground">Google Health connected.</p>
           )}
@@ -165,6 +172,7 @@ export default async function ProfilePage({ searchParams }) {
   )
 }
 
+// One label/value row in the Details card; `last` drops the bottom divider.
 function Detail({ label, value, last }) {
   return (
     <div

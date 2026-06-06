@@ -5,6 +5,8 @@
 import webpush from 'web-push'
 import { createServiceClient } from '@/lib/supabase/service'
 
+// Lazily install the VAPID credentials into web-push once per process. Returns false
+// (so the caller can no-op) when the keys aren't set in the environment.
 let configured = false
 function configure() {
   if (configured) return true
@@ -19,6 +21,9 @@ function configure() {
   return true
 }
 
+// Broadcast a push payload to every stored subscription. Records the send in
+// notification_log + a per-device notification_recipients row, prunes subscriptions
+// the push service reports as gone (404/410), and returns { sent, notificationId }.
 export async function sendPushToAll(payload, { source = 'manual' } = {}) {
   if (!configure()) {
     console.error('[push] VAPID keys not configured')

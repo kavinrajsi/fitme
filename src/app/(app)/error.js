@@ -6,6 +6,7 @@
  */
 import { Button } from '@/components/ui/button'
 
+// Next.js error boundary (client component). `reset` re-renders the segment to retry.
 export default function AppError({ reset }) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
