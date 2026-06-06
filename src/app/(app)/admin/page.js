@@ -37,6 +37,10 @@ function fmtDate(value) {
   return value ? new Date(value).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' }) : '—'
 }
 
+function formatHour(hour) {
+  return `${hour % 12 === 0 ? 12 : hour % 12} ${hour < 12 ? 'AM' : 'PM'}`
+}
+
 export default async function AdminPage() {
   const supabase = await createClient()
   const {
@@ -56,7 +60,7 @@ export default async function AdminPage() {
         .from('daily_metrics')
         .select('user_id, date, steps, resting_hr, vo2_max, sleep_min, hydration_ml'),
       service.from('workouts').select('user_id'),
-      service.from('steps_hourly').select('user_id'),
+      service.from('steps_hourly').select('user_id, hour, steps'),
     ])
 
   const byUser = {}
@@ -75,6 +79,7 @@ export default async function AdminPage() {
       hydrationDays: 0,
       workouts: 0,
       hourly: 0,
+      hourSums: new Array(24).fill(0),
     }
   }
   for (const metric of metrics ?? []) {
@@ -96,7 +101,16 @@ export default async function AdminPage() {
     if (metric.hydration_ml != null) entry.hydrationDays += 1
   }
   for (const workout of workouts ?? []) if (byUser[workout.user_id]) byUser[workout.user_id].workouts += 1
-  for (const bucket of hourly ?? []) if (byUser[bucket.user_id]) byUser[bucket.user_id].hourly += 1
+  for (const bucket of hourly ?? []) {
+    const entry = byUser[bucket.user_id]
+    if (!entry) continue
+    entry.hourly += 1
+    entry.hourSums[bucket.hour] += bucket.steps ?? 0
+  }
+  for (const entry of Object.values(byUser)) {
+    const peak = Math.max(...entry.hourSums)
+    entry.peakHour = peak > 0 ? entry.hourSums.indexOf(peak) : null
+  }
 
   const rows = Object.values(byUser).sort((a, b) => b.totalSteps - a.totalSteps)
   const connectedCount = rows.filter((row) => row.profile.google_health_refresh_token).length
@@ -152,6 +166,7 @@ export default async function AdminPage() {
                   <TableHead className="text-right">Hydr d</TableHead>
                   <TableHead className="text-right">Workouts</TableHead>
                   <TableHead className="text-right">Hourly</TableHead>
+                  <TableHead className="text-right">Peak hr</TableHead>
                   <TableHead>Last sync</TableHead>
                 </TableRow>
               </TableHeader>
@@ -199,6 +214,9 @@ export default async function AdminPage() {
                       <TableCell className="text-right tabular-nums">{row.hydrationDays}</TableCell>
                       <TableCell className="text-right tabular-nums">{row.workouts}</TableCell>
                       <TableCell className="text-right tabular-nums">{row.hourly}</TableCell>
+                      <TableCell className="text-right text-xs">
+                        {row.peakHour != null ? formatHour(row.peakHour) : '—'}
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {fmtDate(p.details_synced_at)}
                       </TableCell>
