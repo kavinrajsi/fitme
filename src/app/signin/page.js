@@ -39,7 +39,12 @@ export default async function SignInPage({ searchParams }) {
   } = await supabase.auth.getUser()
   if (user) redirect('/dashboard')
 
-  const { error } = await searchParams
+  const { error, next } = await searchParams
+  // Forward an internal ?next= (e.g. from the OAuth consent screen) through Google sign-in.
+  const googleHref =
+    next && next.startsWith('/') && !next.startsWith('//')
+      ? `/auth/google?next=${encodeURIComponent(next)}`
+      : '/auth/google'
 
   return (
     <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
@@ -57,7 +62,7 @@ export default async function SignInPage({ searchParams }) {
                 </div>
               )}
               <a
-                href="/auth/google"
+                href={googleHref}
                 className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
               >
                 <GoogleIcon />

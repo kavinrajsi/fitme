@@ -23,13 +23,18 @@ import { createClient } from '@/lib/supabase/server'
 // Ask Supabase for the Google consent URL (sign-in scopes only) and redirect to it;
 // on failure bounce back to /signin with an error flag.
 export async function GET(request) {
-  const { origin } = new URL(request.url)
+  const { origin, searchParams } = new URL(request.url)
   const supabase = await createClient()
+
+  // Carry an internal ?next= through to the callback (used by the OAuth consent flow).
+  const rawNext = searchParams.get('next')
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
+  const callback = `${origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: callback,
       scopes: [
         'email',
         'profile',

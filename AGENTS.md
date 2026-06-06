@@ -80,7 +80,17 @@ full architecture, data model, and env vars. Key conventions to follow:
   via the service client. Tokens carry **scopes** (`api_tokens.scopes`, default `{read}`);
   reads need `read`, the single write (`PATCH /api/v1/me` → daily step goal) needs `write`.
   Keep the surface read-mostly — don't expose other users' private rows or admin actions.
-  `resolveToken` is the seam where a future OAuth layer would also resolve tokens.
+- **OAuth2** (`src/lib/oauth.js`, routes `/oauth/authorize` + `/api/oauth/token` +
+  `/.well-known/oauth-authorization-server`, UI `/developers/apps`): authorization-code flow
+  with **PKCE S256 required**; access tokens are `kref_at_…`, refresh tokens rotate. Clients,
+  codes, and tokens live in the `oauth_*` tables (no RLS policies — service client only, always
+  filtered by `owner_user_id`/`user_id`). `authenticateApiRequest` (and MCP `verifyToken`)
+  **dispatch by prefix**: `kref_at_` → `resolveAccessToken`, else `resolveToken` — so both
+  surfaces accept either token type. Add OAuth tokens here, never bypass this seam.
+- **Rate limiting** (`src/lib/rate-limit.js` + `check_rate_limit` SQL fn): per-token fixed
+  window (`API_RATE_LIMIT`/`API_RATE_WINDOW` in constants), enforced inside
+  `authenticateApiRequest`; **fails open** on DB error. Stale `api_rate_limits` rows + expired
+  auth codes are pruned by the daily cron.
 
 ## Working agreements
 - Commit/push only when asked; end commit messages with the `Co-Authored-By` trailer.

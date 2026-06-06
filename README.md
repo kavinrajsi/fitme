@@ -42,6 +42,12 @@ Next.js 16 + Supabase.
   Tokens carry **scopes** (`read` / `write`); a read-only token is safe to hand to another
   developer. Bearer auth, open CORS, an OpenAPI spec at `/api/v1/openapi.json`, and human
   docs at **`/developers`**. Writes are limited to the user's own `dailyStepGoal`.
+  **Rate-limited** per token (120/min, `429` + `X-RateLimit-*` headers).
+- **OAuth2 (`/oauth/*`)** — third-party apps get user consent via the authorization-code
+  flow with **PKCE (S256)** instead of pasted tokens. Register clients at `/developers/apps`;
+  consent at `/oauth/authorize`; token exchange + refresh at `/api/oauth/token`; discovery at
+  `/.well-known/oauth-authorization-server`. OAuth access tokens (`kref_at_…`) work on every
+  `/api/v1` endpoint and the MCP server.
 - **Admin** (`/admin`, gated to `ADMIN_EMAIL`, `noindex`) — all users, per-user drill-down,
   device list, and a push **notification log**.
 - **Sync** three ways: a daily cron, an on-demand streaming Sync button, and a Google
@@ -61,7 +67,9 @@ Next.js 16 + Supabase.
 | `leaderboard_snapshot` | last-seen 7-day totals (drives push deltas) |
 | `push_subscriptions` | Web Push subscriptions + device label/user-agent |
 | `notification_log` / `notification_recipients` | push audit log (what was sent, to whom, status, device) |
-| `api_tokens` | per-user MCP bearer tokens, stored hashed (`token_hash`) with `last_four`, `name`, `last_used_at`, `revoked_at` |
+| `api_tokens` | per-user personal bearer tokens (MCP + REST), stored hashed (`token_hash`) with `last_four`, `name`, `scopes`, `last_used_at`, `revoked_at` |
+| `api_rate_limits` | fixed-window request counters (`key`, `window_start`, `count`) for per-token rate limiting |
+| `oauth_clients` / `oauth_authorization_codes` / `oauth_access_tokens` / `oauth_refresh_tokens` | OAuth2: registered apps, single-use codes, and hashed access/refresh tokens |
 
 Migrations are applied directly via the **Supabase MCP** (`apply_migration`); there is no
 tracked `supabase/` migrations folder. Cross-user ranking is computed in SQL by two
@@ -146,7 +154,8 @@ one-time backfill, 14 days incrementally). After a sync, `notifyTopMovers()` che
 | `POST /api/webhooks/health` | Google Health change webhook (`GOOGLE_HEALTH_WEBHOOK_SECRET`) |
 | `GET /api/og/leaderboard` | branded top-5 image (`?period=`, `?format=story\|post\|square\|wide`) |
 | `POST/GET /api/mcp/mcp` | remote MCP server, per-user Bearer token, read-only tools |
-| `GET/PATCH /api/v1/*` | developer REST API (Bearer token + scopes): `me`, `daily-metrics`, `steps/stats`, `steps/hourly`, `heatmap`, `streaks`, `workouts`, `leaderboard`, `export`, `openapi.json` |
+| `GET/PATCH /api/v1/*` | developer REST API (Bearer token + scopes, rate-limited): `me`, `daily-metrics`, `steps/stats`, `steps/hourly`, `heatmap`, `streaks`, `workouts`, `leaderboard`, `export`, `openapi.json` |
+| `GET /oauth/authorize` · `POST /api/oauth/token` | OAuth2 authorization-code + PKCE flow (consent screen + token/refresh) |
 | `POST /api/push/{subscribe,unsubscribe,test}` | Web Push subscription + admin test broadcast |
 
 ## Deployment

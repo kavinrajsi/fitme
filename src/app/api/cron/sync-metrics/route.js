@@ -77,5 +77,9 @@ export async function GET(request) {
 
   await notifyTopMovers(supabase)
 
+  // Prune stale rate-limit buckets + expired OAuth grants (best-effort housekeeping).
+  await supabase.from('api_rate_limits').delete().lt('window_start', new Date(Date.now() - 86400000).toISOString())
+  await supabase.from('oauth_authorization_codes').delete().lt('expires_at', new Date().toISOString())
+
   return NextResponse.json({ ok: true, users, rows, skipped, days })
 }

@@ -8,7 +8,9 @@
  */
 import { createServiceClient } from '@/lib/supabase/service'
 import { resolveToken } from '@/lib/api-tokens'
-import { apiError } from '@/lib/api-response'
+import { resolveAccessToken } from '@/lib/oauth'
+import { apiError, rateLimitHeaders } from '@/lib/api-response'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 /**
  * Authenticate a request and (optionally) require a scope. Returns either
@@ -22,9 +24,22 @@ export async function authenticateApiRequest(request, { scope } = {}) {
     return apiError(401, 'unauthorized', 'Missing Bearer token. Mint one at /ai.')
   }
 
-  const resolved = await resolveToken(createServiceClient(), token)
+  // Dispatch by prefix: OAuth access tokens (`kref_at_…`) vs personal tokens.
+  const service = createServiceClient()
+  const resolved = token.startsWith('kref_at_')
+    ? await resolveAccessToken(service, token)
+    : await resolveToken(service, token)
   if (!resolved) {
     return apiError(401, 'invalid_token', 'Token is invalid or revoked.')
+  }
+
+  // Per-user fixed-window rate limit (shared across instances via Postgres).
+  const rl = await enforceRateLimit(service, `tok:${resolved.userId}`)
+  if (!rl.allowed) {
+    return apiError(429, 'rate_limited', 'Too many requests — slow down.', {
+      'Retry-After': String(Math.max(1, rl.reset - Math.floor(Date.now() / 1000))),
+      ...rateLimitHeaders(rl),
+    })
   }
 
   if (scope && !resolved.scopes.includes(scope)) {

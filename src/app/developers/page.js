@@ -29,7 +29,10 @@ export default function DevelopersPage() {
       </a>
       <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground">Developer API</h1>
       <p className="mt-1 text-muted-foreground">
-        Build an app on your KyaReFitting data with a simple REST API.
+        Build an app on your KyaReFitting data with a simple REST API.{' '}
+        <a href="/developers/apps" className="font-medium text-foreground underline">
+          Manage OAuth apps →
+        </a>
       </p>
 
       <article className="mt-8 space-y-8">
@@ -103,6 +106,44 @@ curl -X PATCH -H "Authorization: Bearer $KREF_TOKEN" \\
   -d '{"dailyStepGoal": 12000}' \\
   https://kyarefitting.app/api/v1/me`}
           </pre>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">OAuth2 (third-party apps)</h2>
+          <p className="mb-2 leading-7 text-muted-foreground">
+            Instead of pasting a personal token, apps can use the OAuth2 authorization-code
+            flow with <strong className="text-foreground">PKCE (S256, required)</strong>. Register
+            a client on <a href="/developers/apps" className="font-medium text-foreground underline">Developer apps</a>, then:
+          </p>
+          <ol className="list-inside list-decimal space-y-1 leading-7 text-muted-foreground">
+            <li>
+              Send the user to <code>/oauth/authorize?response_type=code&amp;client_id=…&amp;redirect_uri=…&amp;scope=read&amp;state=…&amp;code_challenge=…&amp;code_challenge_method=S256</code>.
+            </li>
+            <li>They approve on the consent screen; you receive <code>?code=&amp;state=</code> at your redirect URI.</li>
+            <li>
+              Exchange it at <code>POST /api/oauth/token</code> (<code>grant_type=authorization_code</code>,{' '}
+              <code>code</code>, <code>redirect_uri</code>, <code>client_id</code>, <code>code_verifier</code>)
+              for an access token (<code>kref_at_…</code>) + refresh token.
+            </li>
+            <li>Refresh with <code>grant_type=refresh_token</code> (tokens rotate on each use).</li>
+          </ol>
+          <p className="mt-2 leading-7 text-muted-foreground">
+            Access tokens work as Bearer tokens on every <code>/api/v1</code> endpoint just like
+            personal tokens. Discovery metadata:{' '}
+            <a href="/.well-known/oauth-authorization-server" className="font-medium text-foreground underline">
+              /.well-known/oauth-authorization-server
+            </a>
+            .
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">Rate limits</h2>
+          <p className="leading-7 text-muted-foreground">
+            Requests are limited per token (120/min). Responses include{' '}
+            <code>X-RateLimit-Limit/Remaining/Reset</code>; exceeding it returns{' '}
+            <code>429</code> with a <code>Retry-After</code> header.
+          </p>
         </section>
 
         <section>

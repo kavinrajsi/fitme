@@ -11,6 +11,7 @@ import { createMcpHandler, withMcpAuth } from 'mcp-handler'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
 import { resolveToken } from '@/lib/api-tokens'
+import { resolveAccessToken } from '@/lib/oauth'
 import {
   getProfileSummary,
   getDailyMetrics,
@@ -126,7 +127,10 @@ const handler = createMcpHandler(
 /** Map a presented Bearer token to MCP auth info carrying the owner's user id. */
 async function verifyToken(_req, bearerToken) {
   if (!bearerToken) return undefined
-  const resolved = await resolveToken(createServiceClient(), bearerToken)
+  const service = createServiceClient()
+  const resolved = bearerToken.startsWith('kref_at_')
+    ? await resolveAccessToken(service, bearerToken)
+    : await resolveToken(service, bearerToken)
   if (!resolved) return undefined
   return {
     token: bearerToken,

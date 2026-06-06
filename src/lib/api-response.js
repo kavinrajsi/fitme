@@ -23,8 +23,20 @@ export function apiJson(data, init = {}) {
 }
 
 /** A `{ error: { code, message } }` response at the given status, with CORS headers. */
-export function apiError(status, code, message) {
-  return Response.json({ error: { code, message } }, { status, headers: CORS_HEADERS })
+export function apiError(status, code, message, headers = {}) {
+  return Response.json(
+    { error: { code, message } },
+    { status, headers: { ...CORS_HEADERS, ...headers } }
+  )
+}
+
+/** Standard `X-RateLimit-*` headers from an enforceRateLimit() result. */
+export function rateLimitHeaders({ limit, remaining, reset }) {
+  return {
+    'X-RateLimit-Limit': String(limit),
+    'X-RateLimit-Remaining': String(remaining),
+    'X-RateLimit-Reset': String(reset),
+  }
 }
 
 /** Preflight handler — export as `OPTIONS` from any v1 route. */
