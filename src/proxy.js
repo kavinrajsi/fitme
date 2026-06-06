@@ -60,6 +60,7 @@ export async function proxy(request) {
     '/data',
     '/workouts',
     '/leaderboard',
+    '/ai',
     '/profile',
     '/admin',
   ]
