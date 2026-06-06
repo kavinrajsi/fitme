@@ -36,7 +36,8 @@ const handler = createMcpHandler(
       'get_profile',
       {
         description:
-          'The user\'s profile: name, email, height, weight, BMI, age, gender, daily step goal, and whether Google Health is connected.',
+          'The user\'s profile: name, email, height, weight, BMI, age, gender, daily step goal, and whether Google Health is connected. ' +
+          'Example: {"name":"Sujith Kumaar","heightCm":178,"weightKg":72.5,"bmi":22.9,"age":29,"dailyStepGoal":10000,"healthConnected":true}',
       },
       async (extra) => {
         const userId = extra?.authInfo?.extra?.userId
@@ -49,7 +50,8 @@ const handler = createMcpHandler(
       'get_daily_metrics',
       {
         description:
-          'Daily health metrics (steps, calories, distance, heart rate, resting HR, VO2 max, SpO2, HRV, sleep, active minutes, hydration) for the last N days, newest first.',
+          'Daily health metrics (steps, calories, distance, heart rate, resting HR, VO2 max, SpO2, HRV, sleep, active minutes, hydration) for the last N days, newest first. ' +
+          'Example: {"days":30,"rows":[{"date":"2026-06-06","steps":8421,"calories":412,"total_calories":2210,"distance_km":6.1,"hr_avg":78,"resting_hr":58,"sleep_min":412,"active_min":64,"hydration_ml":1800}]}',
         inputSchema: { days: z.number().int().min(1).max(365).optional() },
       },
       async ({ days }, extra) => {
@@ -62,7 +64,8 @@ const handler = createMcpHandler(
       'get_step_stats',
       {
         description:
-          'Step summary: today, yesterday, last-7-day total + average, previous-7-day total (for trend), and 30-day average.',
+          'Step summary: today, yesterday, last-7-day total + average, previous-7-day total (for trend), and 30-day average. ' +
+          'Example: {"today":8421,"yesterday":11034,"last7Total":61240,"last7Avg":8749,"prev7Total":54980,"last30Avg":8120}',
       },
       async (extra) => {
         const userId = extra?.authInfo?.extra?.userId
@@ -74,7 +77,8 @@ const handler = createMcpHandler(
       'get_streaks_and_achievements',
       {
         description:
-          'Goal streaks (current + best), totals, best day, best week, and the 9 achievement badges with earned status — relative to the user\'s daily step goal.',
+          'Goal streaks (current + best), totals, best day, best week, and the 9 achievement badges with earned status — relative to the user\'s daily step goal. ' +
+          'Example: {"today":8421,"goal":10000,"currentStreak":3,"bestStreak":14,"total":1284300,"bestDay":23110,"bestWeek":88210,"achievements":[{"id":"first","name":"First Steps","icon":"👟","earned":true}]}',
       },
       async (extra) => {
         const userId = extra?.authInfo?.extra?.userId
@@ -86,7 +90,8 @@ const handler = createMcpHandler(
       'get_activity_heatmap',
       {
         description:
-          'When the user is active: a weekday (0=Sun) x hour grid of summed steps over the last ~90 days, plus a peak-time insight.',
+          'When the user is active: a weekday (0=Sun) x hour grid of summed steps over the last ~90 days, plus a peak-time insight. ' +
+          'Example: {"grid":[[0,0,120,540,...24 hours...]],"max":820,"has":true,"insight":"Most active around 6 PM · busiest on Saturday"}',
       },
       async (extra) => {
         const userId = extra?.authInfo?.extra?.userId
@@ -98,7 +103,8 @@ const handler = createMcpHandler(
       'get_workouts',
       {
         description:
-          'Recent workout sessions (type, start/end, duration, steps, calories, distance, active zone minutes), newest first.',
+          'Recent workout sessions (type, start/end, duration, steps, calories, distance, active zone minutes), newest first. ' +
+          'Example: {"workouts":[{"started_at":"2026-06-06T01:10:00Z","type":"running","duration_min":38,"calories":410,"distance_km":6.2,"steps":6800,"active_zone_minutes":31}]}',
         inputSchema: { limit: z.number().int().min(1).max(100).optional() },
       },
       async ({ limit }, extra) => {
@@ -111,7 +117,8 @@ const handler = createMcpHandler(
       'get_leaderboard',
       {
         description:
-          'Cross-user step leaderboard for a period. `period`: "today", "yesterday", "7d", or "month". Ranked high to low; the current user is flagged with isYou:true.',
+          'Cross-user step leaderboard for a period. `period`: "today", "yesterday", "7d", or "month". Ranked high to low; the current user is flagged with isYou:true. ' +
+          'Example: {"period":"7d","since":"2026-05-31","until":"2026-06-06","ranking":[{"rank":1,"name":"Sanjay Manivannan","totalSteps":78210,"isYou":false}]}',
         inputSchema: { period: z.enum(['today', 'yesterday', '7d', 'month']).optional() },
       },
       async ({ period }, extra) => {
