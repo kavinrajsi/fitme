@@ -16,6 +16,7 @@ import {
   User,
   Sparkles,
   Shield,
+  Bell,
   LogOut,
 } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
@@ -47,8 +48,14 @@ export function AppSidebar({ user, isAdmin = false, ...props }) {
   const { setOpenMobile } = useSidebar()
   // On mobile the sidebar is an overlay; collapse it after navigating.
   const closeMobile = () => setOpenMobile(false)
-  // Admin link only for admins (gated upstream by ADMIN_EMAIL); appended after the base nav.
-  const navItems = isAdmin ? [...NAV, { href: '/admin', label: 'Admin', icon: Shield }] : NAV
+  // Admin links only for admins (gated upstream by ADMIN_EMAIL); appended after the base nav.
+  const navItems = isAdmin
+    ? [
+        ...NAV,
+        { href: '/admin', label: 'Admin', icon: Shield },
+        { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+      ]
+    : NAV
   return (
     <Sidebar {...props}>
       <SidebarHeader>
