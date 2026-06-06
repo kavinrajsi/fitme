@@ -50,10 +50,16 @@ export default async function LeaderboardPage({ searchParams }) {
   } = await supabase.auth.getUser()
 
   // Aggregation happens in Postgres over the period's [since, until] window.
+  const since = period.since()
+  const until = period.until()
   const { data: rows } = await supabase.rpc('leaderboard_between', {
-    since_date: period.since(),
-    until_date: period.until(),
+    since_date: since,
+    until_date: until,
   })
+
+  const fmtDay = (d) =>
+    new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  const dateLabel = since === until ? fmtDay(since) : `${fmtDay(since)} – ${fmtDay(until)}`
 
   const ranked = (rows ?? []).map((row, i) => ({
     id: row.id,
@@ -70,7 +76,7 @@ export default async function LeaderboardPage({ searchParams }) {
     <Card className="mx-auto w-full max-w-2xl">
       <CardHeader>
         <CardTitle>Leaderboard</CardTitle>
-        <CardDescription>Total steps · {period.label}</CardDescription>
+        <CardDescription>Total steps · {period.label} · {dateLabel}</CardDescription>
         <CardAction>
           <LeaderboardShareButton period={period.key} />
         </CardAction>
