@@ -114,9 +114,7 @@ export function ApiTokenManager({ tokens = [], connectUrl }) {
         <div className="space-y-1 text-xs text-muted-foreground">
           <p className="font-medium text-foreground">Connect URL</p>
           <code className="block truncate rounded bg-muted px-2 py-1 font-mono">{connectUrl}</code>
-          <p>
-            Claude CLI: <code className="font-mono">claude mcp add --transport http kyarefitting {connectUrl} --header &quot;Authorization: Bearer &lt;token&gt;&quot;</code>
-          </p>
+          <p>See “Connect to Claude” below for setup steps.</p>
         </div>
       )}
     </div>

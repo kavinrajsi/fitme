@@ -12,6 +12,7 @@ import {
   CardContent,
 } from '@/components/ui/card'
 import { ApiTokenManager } from '@/components/api-token-manager'
+import { McpConnectGuide } from '@/components/mcp-connect-guide'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,6 +53,16 @@ export default async function AiPage() {
         </CardHeader>
         <CardContent>
           <ApiTokenManager tokens={tokens ?? []} connectUrl={mcpUrl} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Connect to Claude</CardTitle>
+          <CardDescription>Add this MCP server to Claude Code or Claude Desktop</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <McpConnectGuide connectUrl={mcpUrl} />
         </CardContent>
       </Card>
     </div>
