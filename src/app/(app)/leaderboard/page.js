@@ -11,11 +11,13 @@ import { createClient } from '@/lib/supabase/server'
 import { dkey, istMonthStart } from '@/lib/date-utils'
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { LeaderboardShareButton } from '@/components/leaderboard-share-button'
 import {
   Table,
   TableBody,
@@ -67,6 +69,9 @@ export default async function LeaderboardPage({ searchParams }) {
       <CardHeader>
         <CardTitle>Leaderboard</CardTitle>
         <CardDescription>Total steps · {period.label}</CardDescription>
+        <CardAction>
+          <LeaderboardShareButton period={period.key} />
+        </CardAction>
       </CardHeader>
 
       <CardContent>

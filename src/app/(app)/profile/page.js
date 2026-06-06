@@ -19,6 +19,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NotificationsToggle } from '@/components/notifications-toggle'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { ApiTokenManager } from '@/components/api-token-manager'
+import { headers } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +38,17 @@ export default async function ProfilePage({ searchParams }) {
     .eq('id', user.id)
     .maybeSingle()
   const goal = profile?.daily_step_goal ?? 10000
+
+  const { data: tokens } = await supabase
+    .from('api_tokens')
+    .select('id, name, last_four, created_at, last_used_at')
+    .eq('user_id', user.id)
+    .is('revoked_at', null)
+    .order('created_at', { ascending: false })
+
+  const host = (await headers()).get('host')
+  const proto = host?.startsWith('localhost') || host?.startsWith('127.') ? 'http' : 'https'
+  const mcpUrl = host ? `${proto}://${host}/api/mcp/mcp` : '/api/mcp/mcp'
 
   const details = await getUserDetails()
   const name = details?.name ?? 'there'
@@ -141,6 +154,18 @@ export default async function ProfilePage({ searchParams }) {
         </CardHeader>
         <CardContent>
           <NotificationsToggle />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>AI access (MCP)</CardTitle>
+          <CardDescription>
+            Let an AI tool read your fitness data via the Model Context Protocol
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ApiTokenManager tokens={tokens ?? []} connectUrl={mcpUrl} />
         </CardContent>
       </Card>
 
