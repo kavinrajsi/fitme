@@ -6,6 +6,7 @@
  * aggregated by the leaderboard_since() security-definer SQL function — only
  * leaderboard-safe fields (display name, avatar, step total) are returned.
  */
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { dkey, istMonthStart } from '@/lib/date-utils'
 import {
@@ -73,9 +74,10 @@ export default async function LeaderboardPage({ searchParams }) {
           {PERIODS.map((option) => {
             const active = option.key === period.key
             return (
-              <a
+              <Link
                 key={option.key}
                 href={`/leaderboard?period=${option.key}`}
+                scroll={false}
                 className={cn(
                   'rounded-md px-3 py-1 text-sm font-medium transition-colors',
                   active
@@ -84,7 +86,7 @@ export default async function LeaderboardPage({ searchParams }) {
                 )}
               >
                 {option.label}
-              </a>
+              </Link>
             )
           })}
         </div>

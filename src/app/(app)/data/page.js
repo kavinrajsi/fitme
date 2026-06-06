@@ -86,9 +86,10 @@ export default async function DataPage({ searchParams }) {
         <CardAction>
           <div className="bg-muted flex gap-0.5 rounded-lg p-0.5">
             {RANGES.map((option) => (
-              <a
+              <Link
                 key={option.key}
                 href={`/data?range=${option.key}`}
+                scroll={false}
                 className={cn(
                   'rounded-md px-2.5 py-1 text-xs font-medium',
                   option.key === range.key
@@ -97,7 +98,7 @@ export default async function DataPage({ searchParams }) {
                 )}
               >
                 {option.short}
-              </a>
+              </Link>
             ))}
           </div>
         </CardAction>
@@ -151,6 +152,7 @@ export default async function DataPage({ searchParams }) {
                         <TableCell className="whitespace-nowrap">
                           <Link
                             href={hrefFor(day.date)}
+                            scroll={false}
                             className="text-muted-foreground hover:text-foreground font-medium hover:underline"
                           >
                             {formatDate(day.date)}

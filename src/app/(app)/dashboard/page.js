@@ -32,6 +32,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { dkey } from '@/lib/date-utils'
 import { StepsAreaChart, HourlyStepsChart, MetricTrendChart } from '@/components/charts'
+import Link from 'next/link'
 import { GoalRing } from '@/components/goal-ring'
 import { HourHeatmap } from '@/components/hour-heatmap'
 
@@ -286,9 +287,10 @@ export default async function DashboardPage({ searchParams }) {
           <CardAction>
             <div className="bg-muted flex gap-0.5 rounded-lg p-0.5">
               {RANGES.map((option) => (
-                <a
+                <Link
                   key={option.key}
                   href={`/dashboard?range=${option.key}`}
+                  scroll={false}
                   className={cn(
                     'rounded-md px-2.5 py-1 text-xs font-medium',
                     option.key === range.key
@@ -297,7 +299,7 @@ export default async function DashboardPage({ searchParams }) {
                   )}
                 >
                   {option.label}
-                </a>
+                </Link>
               ))}
             </div>
           </CardAction>
