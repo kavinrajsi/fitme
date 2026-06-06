@@ -27,20 +27,23 @@ export async function notifyLeaderboardTop(service, { period }) {
           .map((row) => `${row.rank}. ${row.name ?? 'Someone'} — ${Number(row.totalSteps).toLocaleString()}`)
           .join('\n')
       : 'No steps logged yet — get moving!'
-    return await sendPushToAll(
+    const result = await sendPushToAll(
       { title: TOP_TITLES[key], body, url: `/leaderboard?period=${key}` },
       { source: `leaderboard-${key}` }
     )
+    return { ...result, period: key }
   } catch (err) {
     console.error('[notify] notifyLeaderboardTop failed:', err?.message ?? err)
-    return { sent: 0 }
+    return { sent: 0, period: period === 'today' ? 'today' : 'yesterday' }
   }
 }
 
 // Compare each current top-4 mover's 7-day step total against the last snapshot and
 // push a "gained N steps" alert when the gain clears THRESHOLD, then store the new
 // totals for next time. Swallows all errors — sync must never fail because a push did.
-export async function notifyTopMovers(service) {
+// `push: false` refreshes the snapshot baseline without sending (used by the daily cron
+// so the deltas seen by manual /api/sync + the webhook stay ~1 day fresh).
+export async function notifyTopMovers(service, { push = true } = {}) {
   try {
     const since = dkey(6) // last 7 days
     const { data: ranking } = await service.rpc('leaderboard_since', { since_date: since })
@@ -60,7 +63,7 @@ export async function notifyTopMovers(service) {
     for (const row of top4) {
       const current = Number(row.total_steps) || 0
       const before = previous[row.id]
-      if (before != null && current - before >= THRESHOLD) {
+      if (push && before != null && current - before >= THRESHOLD) {
         const delta = current - before
         await sendPushToAll(
           {

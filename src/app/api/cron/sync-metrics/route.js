@@ -9,30 +9,26 @@
  * `?days=N` (default 7, max 90) controls how many trailing days to (re)sync — pass
  * a larger value once to backfill history.
  *
- * After syncing this also fires the morning leaderboard push (yesterday's top 3); the
- * night push (today's top 3) is a separate cron, /api/cron/notify-leaderboard.
+ * After syncing this refreshes the leaderboard_snapshot baseline (no push) and fires the
+ * morning leaderboard push (yesterday's top 3); the night push (today's top 3) is a
+ * separate cron, /api/cron/notify-leaderboard.
  */
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { authorizeCron } from '@/lib/cron-auth'
 import { syncAllConnectedUsers } from '@/lib/sync-metrics'
-import { notifyLeaderboardTop } from '@/lib/notify-leaderboard'
+import { notifyLeaderboardTop, notifyTopMovers } from '@/lib/notify-leaderboard'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 // Authorize the cron caller, then sync every Google-Health-connected profile in turn,
 // tallying users/rows touched (and skips) for the JSON summary. Runs sequentially to
-// stay within the function's compute/rate limits, then pushes the morning "yesterday's
-// top 3" leaderboard at the end.
+// stay within the function's compute/rate limits, then refreshes the leaderboard_snapshot
+// baseline and pushes the morning "yesterday's top 3" leaderboard at the end.
 export async function GET(request) {
-  // Require CRON_SECRET — never run unauthenticated even if the env var is missing.
-  const secret = process.env.CRON_SECRET
-  if (!secret) {
-    return new NextResponse('CRON_SECRET not configured', { status: 500 })
-  }
-  if (request.headers.get('authorization') !== `Bearer ${secret}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+  const denied = authorizeCron(request)
+  if (denied) return denied
 
   // Clamp ?days into [1, 90] (Health rollup windows cap at 90d); default 7.
   const days = Math.min(
@@ -48,6 +44,9 @@ export async function GET(request) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 })
   }
 
+  // Refresh the leaderboard_snapshot baseline (no push) so the "added N steps" deltas on
+  // manual /api/sync + the webhook stay ~1 day fresh now that the cron doesn't push movers.
+  await notifyTopMovers(supabase, { push: false })
   // Morning leaderboard push: the day's data is now synced, so broadcast yesterday's top 3.
   await notifyLeaderboardTop(supabase, { period: 'yesterday' })
 

@@ -61,12 +61,14 @@ full architecture, data model, and env vars. Key conventions to follow:
   the shared loop the crons use. Full history backfills once per user
   (`profiles.health_data_backfilled_at`).
 - Web Push: `src/lib/push.js` (`sendPushToAll`) + two helpers in `notify-leaderboard.js`:
-  `notifyTopMovers` (7-day "added N steps" deltas; fires on manual `/api/sync` + webhook)
-  and `notifyLeaderboardTop({ period })` (daily top-3 recap). Opt-in only, from the Profile
-  toggle.
+  `notifyTopMovers({ push })` (7-day "added N steps" deltas; fires on manual `/api/sync` +
+  webhook — the morning cron calls it with `push:false` to refresh the `leaderboard_snapshot`
+  baseline silently) and `notifyLeaderboardTop({ period })` (daily top-3 recap; returns the
+  resolved `period`). Opt-in only, from the Profile toggle.
 - Two crons (`vercel.json`, 2 jobs ⇒ Vercel Pro): `sync-metrics` (07:30 IST) syncs then
   pushes **yesterday's** top 3; `notify-leaderboard?period=today&sync=1` (21:00 IST)
-  re-syncs then pushes **today's** top 3. Both gated by `CRON_SECRET`.
+  re-syncs (`backfill:false`; `502` + no push if the sync fails) then pushes **today's** top
+  3. Both gated by `CRON_SECRET` via `authorizeCron` (`src/lib/cron-auth.js`).
 - Admin is gated by `ADMIN_EMAIL` (`src/lib/constants.js`).
 - Sync also writes `steps_raw` + `steps_hourly`; `src/lib/heatmap.js` (`buildHeatmap`)
   aggregates the hourly rows into the weekday×hour activity grid.

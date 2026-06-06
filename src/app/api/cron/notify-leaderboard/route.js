@@ -12,6 +12,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { authorizeCron } from '@/lib/cron-auth'
 import { syncAllConnectedUsers } from '@/lib/sync-metrics'
 import { notifyLeaderboardTop } from '@/lib/notify-leaderboard'
 
@@ -19,33 +20,35 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // the night run may sync every user first
 
 export async function GET(request) {
-  // Require CRON_SECRET — never run unauthenticated even if the env var is missing.
-  const secret = process.env.CRON_SECRET
-  if (!secret) {
-    return new NextResponse('CRON_SECRET not configured', { status: 500 })
-  }
-  if (request.headers.get('authorization') !== `Bearer ${secret}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+  const denied = authorizeCron(request)
+  if (denied) return denied
 
   const params = new URL(request.url).searchParams
-  const period = params.get('period') === 'today' ? 'today' : 'yesterday'
   const doSync = params.get('sync') === '1'
 
   const supabase = createServiceClient()
 
   // For "today" the morning sync is stale, so refresh first. days:2 covers the IST/UTC
   // day boundary (the server runs UTC; "today" in IST may still be "yesterday" in UTC).
+  // Skip first-time full backfills here — those belong to the morning sync cron.
   let synced = null
+  let syncFailed = false
   if (doSync) {
     try {
-      synced = await syncAllConnectedUsers(supabase, { days: 2 })
+      synced = await syncAllConnectedUsers(supabase, { days: 2, backfill: false })
     } catch (err) {
       console.error('[cron] notify-leaderboard sync failed:', err?.message ?? err)
+      syncFailed = true
     }
   }
 
-  const result = await notifyLeaderboardTop(supabase, { period })
+  // We asked for fresh data and didn't get it — skip the push rather than broadcasting a
+  // stale/empty "today" board to everyone.
+  if (syncFailed) {
+    return NextResponse.json({ ok: false, error: 'sync_failed', synced }, { status: 502 })
+  }
 
-  return NextResponse.json({ ok: true, period, synced, sent: result?.sent ?? 0 })
+  const result = await notifyLeaderboardTop(supabase, { period: params.get('period') })
+
+  return NextResponse.json({ ok: true, period: result.period, synced, sent: result.sent ?? 0 })
 }

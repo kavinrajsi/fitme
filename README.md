@@ -144,14 +144,20 @@ All three entry points share `syncUserMetrics` (`src/lib/sync-metrics.js`):
 Each run upserts `daily_metrics` and `workouts`, plus raw step samples into `steps_raw`
 and the rolled-up `steps_hourly` buckets that feed the activity heatmap (365 days on the
 one-time backfill, 14 days incrementally). After a **manual** sync or **webhook** sync,
-`notifyTopMovers()` checks the 7-day leaderboard and pushes "added N steps" alerts.
+`notifyTopMovers()` checks the 7-day leaderboard and pushes "added N steps" alerts; the
+morning cron also calls it with `{ push: false }` to keep the `leaderboard_snapshot`
+baseline ~1 day fresh (so those deltas stay accurate) without sending a push.
 
 Daily leaderboard pushes (to all opt-in subscribers) run on two crons:
 
 - **Morning** — at the end of the `sync-metrics` cron, `notifyLeaderboardTop()` broadcasts
   **yesterday's top 3**.
 - **Night** — `GET /api/cron/notify-leaderboard?period=today&sync=1` (`30 15 * * *` UTC =
-  21:00 IST) re-syncs all users, then broadcasts **today's top 3**.
+  21:00 IST) re-syncs all users (incremental only — `backfill: false`), then broadcasts
+  **today's top 3**. If that sync fails it returns `502` and skips the push rather than
+  sending a stale board.
+
+Both cron routes share the `CRON_SECRET` guard in `src/lib/cron-auth.js` (`authorizeCron`).
 
 Full endpoint reference with **sample requests + responses**: [docs/API.md](docs/API.md)
 (human docs also live at `/developers`; machine spec at `/api/v1/openapi.json`).
