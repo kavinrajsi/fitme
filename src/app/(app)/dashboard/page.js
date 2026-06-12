@@ -39,6 +39,7 @@ import { HourlyStepsChart, MetricTrendChart } from '@/components/charts'
 import { GoalRing } from '@/components/goal-ring'
 import { HourHeatmap } from '@/components/hour-heatmap'
 import { ActivityChartCard } from '@/components/activity-chart-card'
+import { LeaderboardSection } from '@/components/leaderboard-section'
 import { buildHeatmap } from '@/lib/heatmap'
 import { exampleFlag } from '@/lib/flags'
 
@@ -59,8 +60,8 @@ const percentChange = (current, previous) =>
 // Loads the user's goal + all daily/hourly metrics in one round-trip, then derives
 // every stat card, trend series, and heatmap from those rows (no per-card queries).
 export default async function DashboardPage({ searchParams }) {
-  const { range: rangeParam } = await searchParams
-  const range = RANGES.find((option) => option.key === rangeParam) ?? RANGES[1]
+  const params = await searchParams
+  const range = RANGES.find((option) => option.key === params.range) ?? RANGES[1]
 
   const supabase = await createClient()
   const {
@@ -366,6 +367,33 @@ export default async function DashboardPage({ searchParams }) {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Leaderboard — same today/yesterday/7d/this-month tabs as /leaderboard, namespaced
+          to the ?lb= param so the activity range toggle and this stay independent. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Leaderboard</CardTitle>
+          <CardDescription>Top movers by total steps</CardDescription>
+          <CardAction>
+            <a
+              href="/leaderboard"
+              className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              View all →
+            </a>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <LeaderboardSection
+            userId={user.id}
+            periodKey={params.lb}
+            basePath="/dashboard"
+            paramName="lb"
+            currentParams={params}
+            limit={5}
+          />
         </CardContent>
       </Card>
 

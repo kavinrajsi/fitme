@@ -6,10 +6,12 @@
  */
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function SyncButton() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [running, setRunning] = useState(false)
   const [steps, setSteps] = useState([])
@@ -60,6 +62,9 @@ export function SyncButton() {
           if (event.done) setResult(event)
         }
       }
+      // Refresh server components (dashboard, leaderboard, …) so the freshly-synced
+      // totals show immediately without a hard reload.
+      router.refresh()
     } catch {
       setError('Sync failed — please try again.')
     } finally {

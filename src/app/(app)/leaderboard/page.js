@@ -7,10 +7,8 @@
  * aggregated by the leaderboard_between() security-definer SQL function — only
  * leaderboard-safe fields (display name, avatar, step total) are returned.
  */
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { dkey, istMonthStart } from '@/lib/date-utils'
 import {
   Card,
   CardAction,
@@ -20,33 +18,16 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { LeaderboardShareButton } from '@/components/leaderboard-share-button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
+import { LeaderboardSection, resolvePeriod } from '@/components/leaderboard-section'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata = { title: 'Leaderboard — KyaReFitting aa' }
 
-const PERIODS = [
-  { key: 'today', label: 'Today', since: () => dkey(0), until: () => dkey(0) },
-  { key: 'yesterday', label: 'Yesterday', since: () => dkey(1), until: () => dkey(1) },
-  { key: '7d', label: '7D', since: () => dkey(6), until: () => dkey(0) },
-  { key: 'month', label: 'This month', since: () => istMonthStart(), until: () => dkey(0) },
-]
-
-// Resolves the period window, runs the cross-user RPC, then ranks rows by step total.
-// Always keeps the signed-in user visible even at zero steps so they can find themselves.
+// Resolves the period window and renders the shared leaderboard section (tabs + ranking).
 export default async function LeaderboardPage({ searchParams }) {
-  const { period: periodParam } = await searchParams
-  const period = PERIODS.find((option) => option.key === periodParam) ?? PERIODS[0] // default Today
+  const params = await searchParams
+  const period = resolvePeriod(params.period) // default Today
 
   const supabase = await createClient()
   const {
@@ -54,30 +35,11 @@ export default async function LeaderboardPage({ searchParams }) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/signin')
 
-  // Aggregation happens in Postgres over the period's [since, until] window.
   const since = period.since()
   const until = period.until()
-  const { data: rows } = await supabase.rpc('leaderboard_between', {
-    since_date: since,
-    until_date: until,
-  })
-
   const formatDayLabel = (d) =>
     new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
   const dateLabel = since === until ? formatDayLabel(since) : `${formatDayLabel(since)} – ${formatDayLabel(until)}`
-
-  // RPC returns rows pre-sorted by steps desc; rank is just the 1-based position.
-  const ranked = (rows ?? []).map((row, i) => ({
-    id: row.id,
-    name: row.full_name ?? 'Anonymous',
-    avatar: row.avatar_url,
-    steps: Number(row.total_steps) || 0,
-    rank: i + 1,
-  }))
-
-  // Hide everyone at zero steps, except yourself (so you always see your own row).
-  const shown = ranked.filter((entry) => entry.steps > 0 || entry.id === user.id)
-  const anySteps = ranked.some((entry) => entry.steps > 0)
 
   return (
     <Card className="mx-auto w-full max-w-2xl">
@@ -90,78 +52,14 @@ export default async function LeaderboardPage({ searchParams }) {
       </CardHeader>
 
       <CardContent>
-        <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-1">
-          {PERIODS.map((option) => {
-            const active = option.key === period.key
-            return (
-              <Link
-                key={option.key}
-                href={`/leaderboard?period=${option.key}`}
-                scroll={false}
-                className={cn(
-                  'rounded-md px-3 py-1 text-sm font-medium transition-colors',
-                  active
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {option.label}
-              </Link>
-            )
-          })}
-        </div>
+        <LeaderboardSection
+          userId={user.id}
+          periodKey={period.key}
+          basePath="/leaderboard"
+          paramName="period"
+          currentParams={params}
+        />
       </CardContent>
-
-      {!anySteps ? (
-        <CardContent>
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No steps on the leaderboard yet — sync to get on the board.
-          </p>
-        </CardContent>
-      ) : (
-        <CardContent className="px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12 pl-4 text-center">#</TableHead>
-                <TableHead className="w-10"></TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead className="pr-4 text-right">Steps</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shown.map((entry) => {
-                const isYou = entry.id === user.id
-                return (
-                  /* Highlight your own row so it stands out in the ranking */
-                  <TableRow key={entry.id} className={cn(isYou && 'bg-muted/50')}>
-                    <TableCell className="pl-4 text-center font-medium text-muted-foreground tabular-nums">
-                      {entry.rank}
-                    </TableCell>
-                    <TableCell>
-                      <Avatar size="sm">
-                        {entry.avatar ? <AvatarImage src={entry.avatar} alt="" /> : null}
-                        <AvatarFallback>
-                          {(entry.name?.[0] ?? '?').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {entry.name}
-                      {isYou && (
-                        <span className="text-muted-foreground"> (you)</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="pr-4 text-right tabular-nums">
-                      {entry.steps.toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      )}
     </Card>
   )
 }

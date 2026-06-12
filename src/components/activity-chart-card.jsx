@@ -5,7 +5,7 @@
  * + shows a spinner while the new range's data loads (no full page reload).
  */
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { StepsAreaChart } from '@/components/charts'
 import {
   Card,
@@ -19,12 +19,16 @@ import { cn } from '@/lib/utils'
 
 export function ActivityChartCard({ data, total, avg, rangeKey, ranges }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 
-  // Push the new range to the URL (the server refetches); scroll:false keeps the viewport put.
+  // Push the new range to the URL (the server refetches), preserving any other params
+  // (e.g. the leaderboard's ?lb=) so they don't reset. scroll:false keeps the viewport put.
   const select = (key) => {
     if (key === rangeKey) return
-    startTransition(() => router.push(`/dashboard?range=${key}`, { scroll: false }))
+    const params = new URLSearchParams(searchParams)
+    params.set('range', key)
+    startTransition(() => router.push(`/dashboard?${params.toString()}`, { scroll: false }))
   }
 
   return (
