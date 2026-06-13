@@ -18,7 +18,8 @@ const NAV = [
   { href: '/profile', label: 'Profile', icon: User },
 ]
 
-export function BottomNav() {
+// `profileLabel` overrides the Profile tab's text with the signed-in user's (first) name.
+export function BottomNav({ profileLabel }) {
   const pathname = usePathname()
   return (
     <nav className="bg-background/95 fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
@@ -26,17 +27,18 @@ export function BottomNav() {
         const Icon = item.icon
         // Highlight on exact match or any nested route (e.g. /leaderboard/123 keeps Ranks active).
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+        const label = item.href === '/profile' && profileLabel ? profileLabel : item.label
         return (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-0.5 py-2 text-[0.65rem] font-medium',
+              'flex min-w-0 flex-col items-center justify-center gap-0.5 py-2 text-[0.65rem] font-medium',
               active ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
             <Icon className={cn('size-5', active && 'text-brand')} />
-            {item.label}
+            <span className="max-w-full truncate px-1">{label}</span>
           </Link>
         )
       })}

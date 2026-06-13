@@ -68,7 +68,7 @@ export default async function AppLayout({ children }) {
           {children}
         </div>
       </SidebarInset>
-      <BottomNav />
+      <BottomNav profileLabel={name && name !== 'Account' ? name.split(' ')[0] : null} />
     </SidebarProvider>
   )
 }
