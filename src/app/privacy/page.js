@@ -1,7 +1,9 @@
 /**
  * Privacy Policy — static, read-only legal page (no auth, no data fetching).
  * Documents what Google account / Google Health data is collected, how it is
- * used and shared, the Google API Limited Use commitment, and how to delete data.
+ * used and shared, the third-party analytics tools used (PostHog, Google
+ * Analytics via Tag Manager, Microsoft Clarity), the Google API Limited Use
+ * commitment, and how to delete data.
  */
 
 export const metadata = { title: 'Privacy Policy — KyaReFitting aa' }
@@ -13,7 +15,7 @@ export default function PrivacyPage() {
         ← Back
       </a>
       <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground">Privacy Policy</h1>
-      <p className="mt-1 text-muted-foreground">Last updated: 5 June 2026</p>
+      <p className="mt-1 text-muted-foreground">Last updated: 13 June 2026</p>
 
       <article className="mt-8">
         <p className="text-muted-foreground leading-7 mb-4">
@@ -56,6 +58,39 @@ export default function PrivacyPage() {
           <strong className="text-foreground font-medium">not</strong> sell it.
         </p>
 
+        <h2 className="text-lg font-semibold mt-8 mb-2 text-foreground">Analytics and cookies</h2>
+        <p className="text-muted-foreground leading-7 mb-4">
+          To understand how the App is used and to improve it, we use third-party analytics and
+          product-experience tools. These collect usage data — such as the pages you view, in-app
+          actions, device and browser type, and approximate location derived from your IP address —
+          and use cookies and similar storage:
+        </p>
+        <ul className="list-disc pl-5 space-y-2 text-muted-foreground mb-4">
+          <li>
+            <strong className="text-foreground font-medium">PostHog</strong> — product analytics.
+            We associate analytics events with your account (user id and email) to understand usage,
+            diagnose problems, and run feature experiments.
+          </li>
+          <li>
+            <strong className="text-foreground font-medium">Google Analytics</strong>, loaded via{' '}
+            <strong className="text-foreground font-medium">Google Tag Manager</strong> — aggregate
+            traffic and usage analytics.
+          </li>
+          <li>
+            <strong className="text-foreground font-medium">Microsoft Clarity</strong> — session
+            replay and heatmaps that record interactions such as clicks, scrolls, and navigation to
+            help us improve usability. On-screen text is masked by Clarity&apos;s default privacy
+            settings.
+          </li>
+        </ul>
+        <p className="text-muted-foreground leading-7 mb-4">
+          These providers process usage and interaction data on our behalf under their own privacy
+          terms; we do <strong className="text-foreground font-medium">not</strong> send your Google
+          Health data to them, and it is not used for advertising. Analytics run on the production
+          site only. You can limit this tracking through your browser or device settings (for
+          example, by blocking cookies or using your platform&apos;s tracking controls).
+        </p>
+
         <h2 className="text-lg font-semibold mt-8 mb-2 text-foreground">Google API Limited Use</h2>
         <p className="text-muted-foreground leading-7 mb-4">
           KyaReFitting aa&apos;s use and transfer of information received from Google APIs to any
@@ -84,8 +119,10 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-foreground font-medium">Service providers:</strong> we use Google (sign-in and Google Health/People
-            APIs) and Supabase (authentication and database hosting) to operate the App. They
-            process data on our behalf under their own terms.
+            APIs) and Supabase (authentication and database hosting) to operate the App, and the
+            analytics providers listed under &quot;Analytics and cookies&quot; above (PostHog,
+            Google Analytics/Tag Manager, and Microsoft Clarity). They process data on our behalf
+            under their own terms.
           </li>
           <li>We do not otherwise share, rent, or sell your personal information.</li>
         </ul>
